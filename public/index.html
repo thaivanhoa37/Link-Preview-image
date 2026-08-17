@@ -419,8 +419,13 @@
           </button>
           <button type="button" class="btn-ghost flex-1" onclick="doRecrop()" aria-label="Cắt lại">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 2 6 6 2 6"/><polyline points="18 2 18 6 22 6"/><polyline points="6 22 6 18 2 18"/><polyline points="18 22 18 18 22 18"/><rect x="6" y="6" width="12" height="12"/></svg>
-            Cắt lại
+            Chỉnh lại ảnh
           </button>
+        </div>
+
+        <div class="mt-2 text-[.72rem] text-slate-500 bg-violet-500/10 border border-violet-500/20 rounded-lg p-2 flex items-start gap-1.5">
+          <span class="text-violet-400 font-bold shrink-0">💡</span>
+          <span>Ảnh đứng (chân dung) sẽ bị cắt nếu chọn khung ngang. Chọn <strong>"✨ Lấy trọn ảnh (Nền mờ)"</strong> khi upload để giữ 100% hình mà không bị xén!</span>
         </div>
       </div>
 
@@ -450,9 +455,9 @@
           <div>
             <label for="titleInput" class="block text-xs font-semibold text-slate-400 mb-1.5">
               📝 Tiêu đề <span class="text-rose-400 font-normal">*</span>
-              <span class="text-slate-600 font-normal ml-1">— hiện ngay dưới ảnh</span>
+              <span class="text-slate-600 font-normal ml-1">— hiện ngay dưới ảnh (thay thế cho 0.0)</span>
             </label>
-            <input id="titleInput" type="text" class="inp" placeholder='Ví dụ: "Xem ngay thôi!" hay tên bài viết' maxlength="120" />
+            <input id="titleInput" type="text" class="inp" placeholder='Ví dụ: "Xem ngay thôi!" hay tên sản phẩm' maxlength="120" />
             <div class="text-right mt-1"><span id="titleCount" class="text-[.68rem] text-slate-600">0/120</span></div>
           </div>
 
@@ -778,8 +783,32 @@
     </div>
 
     <!-- Footer -->
-    <div class="flex gap-3 justify-end">
+    <div class="flex gap-2 justify-end flex-wrap items-center">
       <button class="btn-ghost" onclick="closeCrop()" style="font-family:inherit">Hủy</button>
+      <button
+        id="fitWhiteBtn"
+        onclick="doCropFitWhite()"
+        style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:.7rem 1.1rem;font-size:.85rem;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;transition:all .15s"
+        title="Ghép nền trắng 2 bên (Giữ 100% ảnh đứng không bị cắt)"
+      >
+        <div class="btn-spinner" id="fitWhiteSpinner"></div>
+        <span class="btn-lbl flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+          ⚪ Ghép nền trắng (Full 100% ảnh)
+        </span>
+      </button>
+      <button
+        id="fitBlurBtn"
+        onclick="doCropFitBlur()"
+        style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(124,58,237,.2);border:1px solid rgba(167,139,250,.4);border-radius:10px;padding:.7rem 1.1rem;font-size:.85rem;font-weight:600;color:#a78bfa;cursor:pointer;font-family:inherit;transition:all .15s"
+        title="Ghép nền mờ 2 bên (Giữ 100% ảnh đứng không bị cắt)"
+      >
+        <div class="btn-spinner" id="fitBlurSpinner"></div>
+        <span class="btn-lbl flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+          ✨ Ghép nền mờ (Full 100% ảnh)
+        </span>
+      </button>
       <button
         id="confirmCrop"
         onclick="doCropConfirm()"
@@ -788,7 +817,7 @@
         <div class="btn-spinner" id="cropSpinner"></div>
         <span class="btn-lbl flex items-center gap-1.5">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
-          Xác nhận & Upload
+          Cắt ảnh theo khung
         </span>
       </button>
     </div>
@@ -1029,6 +1058,164 @@ async function doCropConfirm() {
   } finally {
     confirmCrop.disabled = false;
     confirmCrop.classList.remove('is-loading');
+  }
+}
+
+async function doCropFitBlur() {
+  const fitBlurBtn = $('fitBlurBtn');
+  if (!cropImg.src) return;
+  fitBlurBtn.disabled = true;
+  fitBlurBtn.classList.add('is-loading');
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 630;
+    const ctx = canvas.getContext('2d');
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = cropImg.src;
+    });
+
+    const imgW = img.naturalWidth || img.width;
+    const imgH = img.naturalHeight || img.height;
+
+    // 1. Draw blurred background covering 1200x630
+    ctx.save();
+    const bgScale = Math.max(1200 / imgW, 630 / imgH);
+    const bgW = imgW * bgScale;
+    const bgH = imgH * bgScale;
+    const bgX = (1200 - bgW) / 2;
+    const bgY = (630 - bgH) / 2;
+
+    ctx.filter = 'blur(25px) brightness(0.65)';
+    ctx.drawImage(img, bgX, bgY, bgW, bgH);
+    ctx.restore();
+
+    // Dark overlay for background contrast
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, 1200, 630);
+
+    // 2. Draw full centered image preserving aspect ratio
+    const fitScale = Math.min(1200 / imgW, 630 / imgH);
+    const fitW = imgW * fitScale;
+    const fitH = imgH * fitScale;
+    const fitX = (1200 - fitW) / 2;
+    const fitY = (630 - fitH) / 2;
+
+    ctx.drawImage(img, fitX, fitY, fitW, fitH);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    closeCrop();
+    setUState('loading');
+    fakeProgress();
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageData: dataUrl }),
+    });
+    const data = await res.json();
+    clearInterval(progressTimer);
+
+    if (!res.ok || !data.success) {
+      toast(`❌ Upload thất bại: ${data.error || 'Lỗi không xác định'}`);
+      setUState('idle');
+      return;
+    }
+
+    uploadedUrl = data.url;
+    uProgress.style.width = '100%';
+    cropThumb.src = dataUrl;
+    setUState('done');
+    syncPreviews(dataUrl);
+    toast('✅ Đã ghép trọn 100% ảnh (nền mờ)!');
+
+  } catch (err) {
+    clearInterval(progressTimer);
+    console.error(err);
+    toast('❌ Lỗi xử lý ảnh.');
+    setUState('idle');
+  } finally {
+    fitBlurBtn.disabled = false;
+    fitBlurBtn.classList.remove('is-loading');
+  }
+}
+
+async function doCropFitWhite() {
+  const fitWhiteBtn = $('fitWhiteBtn');
+  if (!cropImg.src) return;
+  fitWhiteBtn.disabled = true;
+  fitWhiteBtn.classList.add('is-loading');
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 1200;
+    const ctx = canvas.getContext('2d');
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = cropImg.src;
+    });
+
+    const imgW = img.naturalWidth || img.width;
+    const imgH = img.naturalHeight || img.height;
+
+    // Fill pure white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 1200, 1200);
+
+    // Draw centered image preserving aspect ratio
+    const fitScale = Math.min(1200 / imgW, 1200 / imgH);
+    const fitW = imgW * fitScale;
+    const fitH = imgH * fitScale;
+    const fitX = (1200 - fitW) / 2;
+    const fitY = (1200 - fitH) / 2;
+
+    ctx.drawImage(img, fitX, fitY, fitW, fitH);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    closeCrop();
+    setUState('loading');
+    fakeProgress();
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageData: dataUrl }),
+    });
+    const data = await res.json();
+    clearInterval(progressTimer);
+
+    if (!res.ok || !data.success) {
+      toast(`❌ Upload thất bại: ${data.error || 'Lỗi không xác định'}`);
+      setUState('idle');
+      return;
+    }
+
+    uploadedUrl = data.url;
+    uProgress.style.width = '100%';
+    cropThumb.src = dataUrl;
+    setUState('done');
+    syncPreviews(dataUrl);
+    toast('✅ Đã ghép trọn 100% ảnh (nền trắng)!');
+
+  } catch (err) {
+    clearInterval(progressTimer);
+    console.error(err);
+    toast('❌ Lỗi xử lý ảnh.');
+    setUState('idle');
+  } finally {
+    fitWhiteBtn.disabled = false;
+    fitWhiteBtn.classList.remove('is-loading');
   }
 }
 
