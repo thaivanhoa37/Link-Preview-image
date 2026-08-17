@@ -425,7 +425,7 @@
 
         <div class="mt-2 text-[.72rem] text-slate-500 bg-violet-500/10 border border-violet-500/20 rounded-lg p-2 flex items-start gap-1.5">
           <span class="text-violet-400 font-bold shrink-0">💡</span>
-          <span>Ảnh đứng (chân dung) sẽ bị cắt nếu chọn khung ngang. Chọn <strong>"✨ Lấy trọn ảnh (Nền mờ)"</strong> khi upload để giữ 100% hình mà không bị xén!</span>
+          <span>Để ảnh hiện <strong>tràn toàn bộ khung Facebook (không bị 2 vệt mờ 2 bên)</strong>, hãy dùng nút <strong>"Cắt ảnh theo khung"</strong> (tỉ lệ 1.91:1). Nếu chọn <strong>"✨ Ghép nền mờ"</strong>, hệ thống sẽ thêm 2 vệt mờ ở 2 bên để giữ nguyên chiều cao ảnh đứng.</span>
         </div>
       </div>
 
@@ -954,17 +954,17 @@ function openCrop(src) {
   cropOverlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  // Reset ratio state
-  ratioLocked = false;
-  $('lockLbl').textContent = 'Tự do';
-  $('lockIco').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 1 1 9.9-1"/>';
-  $('lockRatioBtn').style.color = '#a78bfa';
+  // Mac dinh khoá tỉ le 1.91:1 đe anh hien full tran vien tren Facebook
+  ratioLocked = true;
+  $('lockLbl').textContent = '1.91:1';
+  $('lockIco').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
+  $('lockRatioBtn').style.color = '#fbbf24';
 
   if (cropper) { cropper.destroy(); cropper = null; }
 
   cropImg.onload = () => {
     cropper = new Cropper(cropImg, {
-      aspectRatio: NaN,
+      aspectRatio: 1200 / 630,
       viewMode: 1,
       dragMode: 'crop',
       autoCropArea: 1,
