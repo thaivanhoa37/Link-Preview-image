@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { targetUrl, imageUrl, title, description, fakeDomain } = req.body;
+    const { targetUrl, imageUrl, title, description, fakeDomain, imageWidth, imageHeight } = req.body;
 
     // Validate bắt buộc
     if (!targetUrl || !imageUrl || !title) {
@@ -57,6 +57,8 @@ export default async function handler(req, res) {
       title: title.trim(),
       description: (description || "").trim(),
       fakeDomain: cleanFakeDomain,
+      imageWidth: Number(imageWidth) || 1200,
+      imageHeight: Number(imageHeight) || 630,
       createdAt: new Date().toISOString(),
     };
 

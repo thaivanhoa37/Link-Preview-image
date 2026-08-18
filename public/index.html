@@ -579,6 +579,17 @@
         </span>
       </button>
 
+      <!-- 📱 ANH DOC TRAN VIEN (AN DOMAIN & KHUNG XAM) -->
+      <button id="fitOrigBtn" onclick="doCropFitOriginal()"
+        style="display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,#d97706,#b45309);border:none;border-radius:10px;padding:.7rem 1.1rem;font-size:.85rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(217,119,6,.35);transition:all .15s"
+        title="Giu 100% anh doc nguyen ban — Facebook se TU DONG AN TEN DOMAIN va khung xam!">
+        <div class="btn-spinner" id="fitOrigSpinner"></div>
+        <span class="btn-lbl flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="3"/></svg>
+          &#128241; Anh doc tran vien (An domain)
+        </span>
+      </button>
+
       <!-- nen trang -->
       <button id="fitWhiteBtn" onclick="doCropFitWhite()"
         style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:.7rem 1rem;font-size:.82rem;font-weight:600;color:#e2e8f0;cursor:pointer;font-family:inherit;transition:all .15s"
@@ -617,6 +628,8 @@ let origObjUrl  = null;
 let uploadedUrl = '';
 let shortUrl    = '';
 let ratioLocked = true;
+let curImgWidth  = 1200;
+let curImgHeight = 630;
 const HIST_KEY  = 'lp_history';
 const TW = 1200, TH = 630;
 
@@ -692,7 +705,9 @@ function fakeProgress() {
 }
 
 /* ======================== HELPERS ====================== */
-async function uploadDataUrl(dataUrl, msg) {
+async function uploadDataUrl(dataUrl, msg, w, h) {
+  curImgWidth  = w || 1200;
+  curImgHeight = h || 630;
   const res  = await fetch('/api/upload', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({imageData:dataUrl}) });
   const data = await res.json();
   clearInterval(progressTimer);
@@ -812,7 +827,28 @@ async function doAutoFitStandard() {
     const canvas = makeStandardCanvas(img, 'blur');
     const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
     closeCrop(); setUState('loading'); fakeProgress();
-    await uploadDataUrl(dataUrl, 'Tu dong tao anh chuan 1200x630px thanh cong!');
+    await uploadDataUrl(dataUrl, 'Tu dong tao anh chuan 1200x630px thanh cong!', 1200, 630);
+  } catch(err) { clearInterval(progressTimer); console.error(err); toast('Loi xu ly anh.'); setUState('idle'); }
+  finally { btn.disabled = false; btn.classList.remove('is-loading'); }
+}
+
+/* HOAN TOAN AN DOMAIN & KHUNG XAM BANG ANH DOC TRAN VIEN */
+async function doCropFitOriginal() {
+  const btn = $('fitOrigBtn');
+  if (!cropImg.src) return;
+  btn.disabled = true; btn.classList.add('is-loading');
+  try {
+    const img = await loadImg(cropImg.src);
+    const iw  = img.naturalWidth || img.width || 800;
+    const ih  = img.naturalHeight || img.height || 1000;
+    const canvas = document.createElement('canvas');
+    canvas.width = iw; canvas.height = ih;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, iw, ih);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    closeCrop(); setUState('loading'); fakeProgress();
+    await uploadDataUrl(dataUrl, 'Da chon anh doc tran vien! Facebook se AN KHUNG DOMAIN!', iw, ih);
   } catch(err) { clearInterval(progressTimer); console.error(err); toast('Loi xu ly anh.'); setUState('idle'); }
   finally { btn.disabled = false; btn.classList.remove('is-loading'); }
 }
@@ -825,7 +861,7 @@ async function doCropConfirm() {
     if (!canvas) { toast('Khong the lay vung cat.'); return; }
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
     closeCrop(); setUState('loading'); fakeProgress();
-    await uploadDataUrl(dataUrl, 'Upload anh thanh cong (1200x630px)!');
+    await uploadDataUrl(dataUrl, 'Upload anh thanh cong (1200x630px)!', 1200, 630);
   } catch(err) { clearInterval(progressTimer); console.error(err); toast('Loi ket noi.'); setUState('idle'); }
   finally { confirmCrop.disabled = false; confirmCrop.classList.remove('is-loading'); }
 }
@@ -839,7 +875,7 @@ async function doCropFitBlur() {
     const canvas = makeStandardCanvas(img, 'blur');
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
     closeCrop(); setUState('loading'); fakeProgress();
-    await uploadDataUrl(dataUrl, 'Da ghep nen mo 1200x630px!');
+    await uploadDataUrl(dataUrl, 'Da ghep nen mo 1200x630px!', 1200, 630);
   } catch(err) { clearInterval(progressTimer); toast('Loi xu ly.'); setUState('idle'); }
   finally { btn.disabled = false; btn.classList.remove('is-loading'); }
 }
@@ -853,7 +889,7 @@ async function doCropFitWhite() {
     const canvas = makeStandardCanvas(img, 'white');
     const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
     closeCrop(); setUState('loading'); fakeProgress();
-    await uploadDataUrl(dataUrl, 'Da ghep nen trang 1200x630px!');
+    await uploadDataUrl(dataUrl, 'Da ghep nen trang 1200x630px!', 1200, 630);
   } catch(err) { clearInterval(progressTimer); toast('Loi xu ly.'); setUState('idle'); }
   finally { btn.disabled = false; btn.classList.remove('is-loading'); }
 }
@@ -941,7 +977,7 @@ async function doCreate() {
   if (!title)            { toast('Dien tieu de nhe!'); return; }
   createBtn.disabled = true; createBtn.classList.add('is-loading'); resultCard.classList.add('hidden');
   try {
-    const res  = await fetch('/api/create', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({targetUrl,imageUrl:uploadedUrl,title,description:desc,fakeDomain}) });
+    const res  = await fetch('/api/create', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({targetUrl,imageUrl:uploadedUrl,title,description:desc,fakeDomain,imageWidth:curImgWidth,imageHeight:curImgHeight}) });
     const data = await res.json();
     if (!res.ok) { toast(data.error||'Loi khong xac dinh'); return; }
     shortUrl = data.shortUrl;

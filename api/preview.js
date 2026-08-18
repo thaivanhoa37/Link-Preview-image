@@ -54,24 +54,15 @@ function escapeHtml(str = "") {
 /**
  * Tạo trang HTML cho BOT với đầy đủ OG meta tags
  */
-function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeDomain }) {
+function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeDomain, imageWidth, imageHeight }) {
   const safeTitle = escapeHtml(title);
   const safeDesc  = escapeHtml(description || title);
   const safeImage = escapeHtml(imageUrl);
   const safeUrl   = escapeHtml(shortUrl);
+  const width     = Number(imageWidth) || 1200;
+  const height    = Number(imageHeight) || 630;
 
   // ── ẨN DOMAIN ──────────────────────────────────────────────────────────────
-  // og:url quyết định domain hiển thị trên Facebook (dòng chữ nhỏ bên dưới ảnh).
-  //
-  // QUY TẮC AN TOÀN:
-  // • Chỉ thay og:url khi user chủ động nhập fakeDomain.
-  // • KHÔNG tự động dùng targetUrl làm og:url!
-  //   → Nếu targetUrl là facebook.com, Facebook sẽ nhận ra domain mình,
-  //     bỏ qua og:image và lấy ảnh từ bài gốc (gây collage sai).
-  // • Mặc định: og:url = shortUrl (Vercel) → đảm bảo Facebook dùng đúng ảnh.
-  //
-  // CẢNH BÁO: Không đặt fakeDomain = domain của chính targetUrl
-  // (vd: targetUrl là fb.com mà fakeDomain cũng fb.com → Facebook override ảnh).
   let displayUrl = safeUrl; // mặc định an toàn
 
   if (fakeDomain && fakeDomain.trim()) {
@@ -83,7 +74,6 @@ function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeD
     const fdClean = fd.replace(/^www\./, "");
 
     if (targetHost && fdClean === targetHost) {
-      // Nguy hiểm: trùng domain → Facebook sẽ override ảnh → giữ shortUrl
       console.warn(`[preview.js] fakeDomain="${fd}" trùng với targetUrl domain="${targetHost}" → dùng shortUrl thay thế để tránh lỗi ảnh`);
       displayUrl = safeUrl;
     } else {
@@ -109,8 +99,8 @@ function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeD
   <meta property="og:image"              content="${safeImage}" />
   <meta property="og:image:secure_url"   content="${safeImage}" />
   <meta property="og:image:type"         content="image/jpeg" />
-  <meta property="og:image:width"        content="1200" />
-  <meta property="og:image:height"       content="630" />
+  <meta property="og:image:width"        content="${width}" />
+  <meta property="og:image:height"       content="${height}" />
   <meta property="og:locale"             content="vi_VN" />
   <!-- og:site_name bị ẩn hoàn toàn để tránh lộ tên app -->
 
@@ -216,7 +206,7 @@ export default async function handler(req, res) {
     return res.status(500).send("Lỗi máy chủ khi truy xuất dữ liệu.");
   }
 
-  const { targetUrl, imageUrl, title, description, fakeDomain } = linkData;
+  const { targetUrl, imageUrl, title, description, fakeDomain, imageWidth, imageHeight } = linkData;
 
   // Xây dựng short URL hiện tại
   const host =
@@ -237,7 +227,7 @@ export default async function handler(req, res) {
     res.setHeader("Cache-Control", "public, max-age=60, s-maxage=60");
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     return res.status(200).send(
-      buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeDomain })
+      buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeDomain, imageWidth, imageHeight })
     );
   } else {
     // Người dùng thật: không cache, redirect ngay
