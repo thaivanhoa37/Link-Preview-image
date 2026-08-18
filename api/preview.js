@@ -55,9 +55,9 @@ function escapeHtml(str = "") {
  * Tạo trang HTML cho BOT với đầy đủ OG meta tags
  */
 function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeDomain, imageWidth, imageHeight }) {
-  const safeTitle = escapeHtml(title);
-  const safeDesc  = escapeHtml(description || title);
-  const safeImage = escapeHtml(imageUrl);
+  const safeTitle = escapeHtml(title || fakeDomain || "Chuyển hướng...");
+  const safeDesc  = escapeHtml(description || safeTitle);
+  const safeImage = escapeHtml(imageUrl || "");
   const safeUrl   = escapeHtml(shortUrl);
   const width     = Number(imageWidth) || 1200;
   const height    = Number(imageHeight) || 630;
@@ -81,6 +81,17 @@ function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeD
     }
   }
 
+  const imageMeta = safeImage ? `
+  <meta property="og:image"              content="${safeImage}" />
+  <meta property="og:image:secure_url"   content="${safeImage}" />
+  <meta property="og:image:type"         content="image/jpeg" />
+  <meta property="og:image:width"        content="${width}" />
+  <meta property="og:image:height"       content="${height}" />
+  <meta name="twitter:card"              content="summary_large_image" />
+  <meta name="twitter:image"             content="${safeImage}" />
+  <meta itemprop="image"                 content="${safeImage}" />` : `
+  <meta name="twitter:card"              content="summary" />`;
+
   return `<!DOCTYPE html>
 <html lang="vi" prefix="og: https://ogp.me/ns#">
 <head>
@@ -96,24 +107,16 @@ function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeD
   <meta property="og:url"                content="${displayUrl}" />
   <meta property="og:title"              content="${safeTitle}" />
   <meta property="og:description"        content="${safeDesc}" />
-  <meta property="og:image"              content="${safeImage}" />
-  <meta property="og:image:secure_url"   content="${safeImage}" />
-  <meta property="og:image:type"         content="image/jpeg" />
-  <meta property="og:image:width"        content="${width}" />
-  <meta property="og:image:height"       content="${height}" />
   <meta property="og:locale"             content="vi_VN" />
-  <!-- og:site_name bị ẩn hoàn toàn để tránh lộ tên app -->
+  ${imageMeta}
 
   <!-- Twitter Card -->
-  <meta name="twitter:card"              content="summary_large_image" />
   <meta name="twitter:title"             content="${safeTitle}" />
   <meta name="twitter:description"       content="${safeDesc}" />
-  <meta name="twitter:image"             content="${safeImage}" />
 
   <!-- WhatsApp / iMessage / Schema -->
   <meta itemprop="name"                  content="${safeTitle}" />
   <meta itemprop="description"           content="${safeDesc}" />
-  <meta itemprop="image"                 content="${safeImage}" />
 </head>
 <body>
   <p>${safeTitle}</p>

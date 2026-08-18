@@ -21,23 +21,34 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { targetUrl, imageUrl, title, description, fakeDomain, imageWidth, imageHeight } = req.body;
+    const { targetUrl, imageUrl, title, description, fakeDomain, customSlug, imageWidth, imageHeight } = req.body;
 
     // Validate bắt buộc
-    if (!targetUrl || !imageUrl || !title) {
+    if (!targetUrl) {
       return res.status(400).json({
-        error: "Thiếu trường bắt buộc: targetUrl, imageUrl, title.",
+        error: "Thiếu trường bắt buộc: targetUrl.",
       });
     }
 
     // Validate URL format
     try {
       new URL(targetUrl);
-      new URL(imageUrl);
     } catch {
       return res
         .status(400)
-        .json({ error: "targetUrl hoặc imageUrl không phải URL hợp lệ." });
+        .json({ error: "targetUrl không phải URL hợp lệ." });
+    }
+
+    let cleanImageUrl = "";
+    if (imageUrl && imageUrl.trim()) {
+      try {
+        new URL(imageUrl);
+        cleanImageUrl = imageUrl.trim();
+      } catch {
+        return res
+          .status(400)
+          .json({ error: "imageUrl không phải URL hợp lệ." });
+      }
     }
 
     // Validate fakeDomain nếu có (chỉ nhận tên miền, không nhận path nguy hiểm)
@@ -46,15 +57,35 @@ export default async function handler(req, res) {
       cleanFakeDomain = fakeDomain.trim().replace(/^https?:\/\//, "").split("/")[0];
     }
 
-    // Tạo slug ngẫu nhiên 6 ký tự (URL-safe)
-    const slug = nanoid(6);
+    // Xử lý slug (Tự custom hoặc sinh nanoid ngẫu nhiên 6 ký tự)
+    let slug = "";
+    if (customSlug && customSlug.trim()) {
+      const cleanSlug = customSlug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+      if (cleanSlug.length < 3 || cleanSlug.length > 50) {
+        return res.status(400).json({
+          error: "Tên link tùy chỉnh phải từ 3 đến 50 ký tự (chữ cái, chữ số, dấu - hoặc _).",
+        });
+      }
+
+      // Kiểm tra trùng lặp slug trong Redis
+      const existing = await redis.get(`link:${cleanSlug}`);
+      if (existing) {
+        return res.status(400).json({
+          error: `Đường dẫn '/s/${cleanSlug}' đã tồn tại. Vui lòng chọn tên khác!`,
+        });
+      }
+      slug = cleanSlug;
+    } else {
+      slug = nanoid(6);
+    }
+
     const key = `link:${slug}`;
 
     // Dữ liệu lưu trữ
     const linkData = {
       targetUrl: targetUrl.trim(),
-      imageUrl: imageUrl.trim(),
-      title: title.trim(),
+      imageUrl: cleanImageUrl,
+      title: (title || "").trim(),
       description: (description || "").trim(),
       fakeDomain: cleanFakeDomain,
       imageWidth: Number(imageWidth) || 1200,
