@@ -272,25 +272,33 @@
             <div class="flex gap-2 items-center">
               <div class="relative flex-1">
                 <span style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);font-size:.82rem;color:#64748b;pointer-events:none">https://</span>
-                <input id="fakeDomainInput" type="text" class="inp" style="padding-left:3.7rem" placeholder="facebook.com hoac bo trong" autocomplete="off" spellcheck="false" />
+                <input id="fakeDomainInput" type="text" class="inp" style="padding-left:3.7rem" placeholder="Bo trong de hien domain Vercel" autocomplete="off" spellcheck="false" />
               </div>
-              <button type="button" onclick="setPresetDomain(this.value)" value="facebook.com"
-                style="padding:.5rem .7rem;border-radius:8px;background:rgba(24,119,242,.15);border:1px solid rgba(24,119,242,.35);font-size:.72rem;font-weight:600;color:#60a5fa;cursor:pointer;white-space:nowrap;font-family:inherit"
-                title="Dung domain facebook.com">fb</button>
-              <button type="button" onclick="setPresetDomain(this.value)" value="youtube.com"
+              <!-- Preset nhanh (chon domain KHONG phai la target) -->
+              <button type="button" onclick="setPresetDomain('google.com')"
+                style="padding:.5rem .7rem;border-radius:8px;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3);font-size:.72rem;font-weight:600;color:#fbbf24;cursor:pointer;white-space:nowrap;font-family:inherit"
+                title="Hien thi nhu google.com (an toan, khong xung dot)">gg</button>
+              <button type="button" onclick="setPresetDomain('youtube.com')"
                 style="padding:.5rem .7rem;border-radius:8px;background:rgba(255,0,0,.1);border:1px solid rgba(255,100,100,.3);font-size:.72rem;font-weight:600;color:#f87171;cursor:pointer;white-space:nowrap;font-family:inherit"
-                title="Dung domain youtube.com">yt</button>
+                title="Hien thi nhu youtube.com (an toan)">yt</button>
+              <button type="button" onclick="setPresetDomain('tiktok.com')"
+                style="padding:.5rem .7rem;border-radius:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);font-size:.72rem;font-weight:600;color:#e2e8f0;cursor:pointer;white-space:nowrap;font-family:inherit"
+                title="Hien thi nhu tiktok.com">tk</button>
               <button type="button" onclick="clearDomain()"
                 style="padding:.5rem .7rem;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.72rem;font-weight:500;color:#64748b;cursor:pointer;font-family:inherit"
-                title="Xoa / dung tu dong theo link dich">&#10005;</button>
+                title="Xoa, hien domain Vercel mac dinh">&#10005;</button>
             </div>
             <div class="mt-2 text-[.72rem] text-slate-500 leading-relaxed">
-              &#128161; <strong>De trong</strong>: tu dong hien domain cua Link dich (vi du <span id="autoPreviewDomain" class="text-violet-400 font-mono">facebook.com</span>).
-              <strong>Nhap vao</strong>: Facebook se hien chinh xac domain do, an hoan toan domain Vercel cua ban.
+              &#128161; <strong>De trong</strong>: hien domain Vercel cua ban (anh van dung). <strong>Nhap vao</strong>: Facebook se hien chinh xac domain do thay the.<br/>
+              <span class="text-amber-400/80">&#9888; Khong nhap domain trung voi link dich! Vi du: link dich la Facebook thi KHONG nhap facebook.com (se gay loi anh).</span>
             </div>
             <!-- Live domain preview -->
             <div id="domainPreviewBox" style="display:none;margin-top:.6rem;background:rgba(124,58,237,.08);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:.45rem .8rem;font-size:.75rem;color:#a78bfa;font-family:inherit">
               Facebook se hien: <strong id="domainPreviewVal" class="font-mono text-white"></strong>
+            </div>
+            <!-- Canh bao trung domain -->
+            <div id="domainWarnBox" style="display:none;margin-top:.6rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:.5rem .85rem;font-size:.75rem;color:#f87171;font-family:inherit">
+              &#9888; <strong>Canh bao:</strong> Domain nay trung voi link dich! He thong se tu dong bo qua va dung URL Vercel de anh hien dung. Hay chon domain khac (gg, yt, tk).
             </div>
           </div>
         </div>
@@ -877,23 +885,38 @@ $('fakeDomainInput')?.addEventListener('input', updateDomainPreview);
 function updateAutoPreviewDomain() {
   try {
     const u = new URL($('targetUrl').value.trim());
-    $('autoPreviewDomain').textContent = u.hostname;
-  } catch { $('autoPreviewDomain').textContent = 'domain-cua-link-dich'; }
+    const el = $('autoPreviewDomain'); if (el) el.textContent = u.hostname;
+  } catch { const el = $('autoPreviewDomain'); if (el) el.textContent = 'domain-cua-link-dich'; }
   updateDomainPreview();
 }
 
 function updateDomainPreview() {
-  const fd   = ($('fakeDomainInput')?.value || '').trim().replace(/^https?:\/\//, '').split('/')[0];
-  const box  = $('domainPreviewBox');
-  const val  = $('domainPreviewVal');
-  if (fd) {
-    box.style.display = 'block'; val.textContent = fd;
+  const fdRaw = ($('fakeDomainInput')?.value || '').trim().replace(/^https?:\/\//, '').split('/')[0];
+  const box   = $('domainPreviewBox');
+  const warn  = $('domainWarnBox');
+  const val   = $('domainPreviewVal');
+
+  // Lay domain cua targetUrl de check collision
+  let targetHost = '';
+  try { targetHost = new URL($('targetUrl').value.trim()).hostname.toLowerCase().replace(/^www\./, ''); } catch {}
+  const fdClean = fdRaw.toLowerCase().replace(/^www\./, '');
+
+  const isCollision = fdRaw && targetHost && fdClean === targetHost;
+
+  if (fdRaw && !isCollision) {
+    if (box) box.style.display = 'block';
+    if (warn) warn.style.display = 'none';
+    if (val) val.textContent = fdRaw;
+  } else if (isCollision) {
+    if (box) box.style.display = 'none';
+    if (warn) warn.style.display = 'block';
   } else {
-    box.style.display = 'none';
+    if (box) box.style.display = 'none';
+    if (warn) warn.style.display = 'none';
   }
-  /* sync FB preview domain */
-  let displayDomain = fd;
-  if (!displayDomain) { try { displayDomain = new URL($('targetUrl').value.trim()).hostname; } catch {} }
+
+  /* sync FB sidebar preview domain */
+  let displayDomain = isCollision ? '' : fdRaw;
   if (!displayDomain) displayDomain = 'your-domain.vercel.app';
   ['fbDomain','igDomain','thDomain'].forEach(id => { const el=$(id); if(el) el.textContent = displayDomain; });
 }

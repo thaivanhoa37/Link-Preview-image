@@ -61,30 +61,34 @@ function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeD
   const safeUrl   = escapeHtml(shortUrl);
 
   // ── ẨN DOMAIN ──────────────────────────────────────────────────────────────
-  // og:url quyết định domain hiển thị trên Facebook (dòng nhỏ bên dưới ảnh).
-  // • Nếu có fakeDomain → dùng https://fakeDomain làm og:url
-  // • Nếu không → dùng targetUrl để Facebook hiện domain đích (ví dụ facebook.com)
-  //   thay vì domain Vercel của chúng ta.
-  let displayUrl = safeUrl; // fallback
-  if (fakeDomain && fakeDomain.trim()) {
-    try {
-      const fd = fakeDomain.trim().replace(/^https?:\/\//, "").split("/")[0];
-      displayUrl = escapeHtml(`https://${fd}`);
-    } catch {}
-  } else if (targetUrl) {
-    try {
-      // Dùng origin của targetUrl làm og:url → Facebook chỉ hiện domain đích
-      const u = new URL(targetUrl);
-      displayUrl = escapeHtml(u.origin);
-    } catch {}
-  }
+  // og:url quyết định domain hiển thị trên Facebook (dòng chữ nhỏ bên dưới ảnh).
+  //
+  // QUY TẮC AN TOÀN:
+  // • Chỉ thay og:url khi user chủ động nhập fakeDomain.
+  // • KHÔNG tự động dùng targetUrl làm og:url!
+  //   → Nếu targetUrl là facebook.com, Facebook sẽ nhận ra domain mình,
+  //     bỏ qua og:image và lấy ảnh từ bài gốc (gây collage sai).
+  // • Mặc định: og:url = shortUrl (Vercel) → đảm bảo Facebook dùng đúng ảnh.
+  //
+  // CẢNH BÁO: Không đặt fakeDomain = domain của chính targetUrl
+  // (vd: targetUrl là fb.com mà fakeDomain cũng fb.com → Facebook override ảnh).
+  let displayUrl = safeUrl; // mặc định an toàn
 
-  // og:site_name để trống hoặc dùng domain đích (không để lộ "Link Preview")
-  let siteName = "";
   if (fakeDomain && fakeDomain.trim()) {
-    siteName = escapeHtml(fakeDomain.trim().replace(/^https?:\/\//, "").split("/")[0]);
-  } else if (targetUrl) {
-    try { siteName = escapeHtml(new URL(targetUrl).hostname); } catch {}
+    const fd = fakeDomain.trim().replace(/^https?:\/\//, "").split("/")[0].toLowerCase();
+
+    // Kiểm tra xem fakeDomain có trùng với domain của targetUrl không
+    let targetHost = "";
+    try { targetHost = new URL(targetUrl || "").hostname.toLowerCase().replace(/^www\./, ""); } catch {}
+    const fdClean = fd.replace(/^www\./, "");
+
+    if (targetHost && fdClean === targetHost) {
+      // Nguy hiểm: trùng domain → Facebook sẽ override ảnh → giữ shortUrl
+      console.warn(`[preview.js] fakeDomain="${fd}" trùng với targetUrl domain="${targetHost}" → dùng shortUrl thay thế để tránh lỗi ảnh`);
+      displayUrl = safeUrl;
+    } else {
+      displayUrl = escapeHtml(`https://${fd}`);
+    }
   }
 
   return `<!DOCTYPE html>
@@ -93,31 +97,30 @@ function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeD
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Canonical: trỏ đến displayUrl để ẩn domain thật -->
   <link rel="canonical" href="${displayUrl}" />
   <title>${safeTitle}</title>
   <meta name="description" content="${safeDesc}" />
 
-  <!-- Open Graph (Facebook / Threads / Zalo / LinkedIn) -->
+  <!-- Open Graph -->
   <meta property="og:type"               content="website" />
-  <!-- og:url = displayUrl → Facebook hiện domain này, KHÔNG phải domain Vercel -->
   <meta property="og:url"                content="${displayUrl}" />
   <meta property="og:title"              content="${safeTitle}" />
   <meta property="og:description"        content="${safeDesc}" />
   <meta property="og:image"              content="${safeImage}" />
+  <meta property="og:image:secure_url"   content="${safeImage}" />
   <meta property="og:image:type"         content="image/jpeg" />
   <meta property="og:image:width"        content="1200" />
   <meta property="og:image:height"       content="630" />
   <meta property="og:locale"             content="vi_VN" />
-  ${siteName ? `<meta property="og:site_name" content="${siteName}" />` : "<!-- og:site_name ẩn -->"}
+  <!-- og:site_name bị ẩn hoàn toàn để tránh lộ tên app -->
 
-  <!-- Twitter Card (X / Telegram preview) -->
+  <!-- Twitter Card -->
   <meta name="twitter:card"              content="summary_large_image" />
   <meta name="twitter:title"             content="${safeTitle}" />
   <meta name="twitter:description"       content="${safeDesc}" />
   <meta name="twitter:image"             content="${safeImage}" />
 
-  <!-- WhatsApp / iMessage -->
+  <!-- WhatsApp / iMessage / Schema -->
   <meta itemprop="name"                  content="${safeTitle}" />
   <meta itemprop="description"           content="${safeDesc}" />
   <meta itemprop="image"                 content="${safeImage}" />
