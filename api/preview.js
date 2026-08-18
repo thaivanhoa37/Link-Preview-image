@@ -54,11 +54,38 @@ function escapeHtml(str = "") {
 /**
  * Tạo trang HTML cho BOT với đầy đủ OG meta tags
  */
-function buildBotHtml({ title, description, imageUrl, shortUrl }) {
+function buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeDomain }) {
   const safeTitle = escapeHtml(title);
-  const safeDesc = escapeHtml(description || title);
+  const safeDesc  = escapeHtml(description || title);
   const safeImage = escapeHtml(imageUrl);
-  const safeUrl = escapeHtml(shortUrl);
+  const safeUrl   = escapeHtml(shortUrl);
+
+  // ── ẨN DOMAIN ──────────────────────────────────────────────────────────────
+  // og:url quyết định domain hiển thị trên Facebook (dòng nhỏ bên dưới ảnh).
+  // • Nếu có fakeDomain → dùng https://fakeDomain làm og:url
+  // • Nếu không → dùng targetUrl để Facebook hiện domain đích (ví dụ facebook.com)
+  //   thay vì domain Vercel của chúng ta.
+  let displayUrl = safeUrl; // fallback
+  if (fakeDomain && fakeDomain.trim()) {
+    try {
+      const fd = fakeDomain.trim().replace(/^https?:\/\//, "").split("/")[0];
+      displayUrl = escapeHtml(`https://${fd}`);
+    } catch {}
+  } else if (targetUrl) {
+    try {
+      // Dùng origin của targetUrl làm og:url → Facebook chỉ hiện domain đích
+      const u = new URL(targetUrl);
+      displayUrl = escapeHtml(u.origin);
+    } catch {}
+  }
+
+  // og:site_name để trống hoặc dùng domain đích (không để lộ "Link Preview")
+  let siteName = "";
+  if (fakeDomain && fakeDomain.trim()) {
+    siteName = escapeHtml(fakeDomain.trim().replace(/^https?:\/\//, "").split("/")[0]);
+  } else if (targetUrl) {
+    try { siteName = escapeHtml(new URL(targetUrl).hostname); } catch {}
+  }
 
   return `<!DOCTYPE html>
 <html lang="vi" prefix="og: https://ogp.me/ns#">
@@ -66,22 +93,23 @@ function buildBotHtml({ title, description, imageUrl, shortUrl }) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Canonical -->
-  <link rel="canonical" href="${safeUrl}" />
+  <!-- Canonical: trỏ đến displayUrl để ẩn domain thật -->
+  <link rel="canonical" href="${displayUrl}" />
   <title>${safeTitle}</title>
   <meta name="description" content="${safeDesc}" />
 
   <!-- Open Graph (Facebook / Threads / Zalo / LinkedIn) -->
   <meta property="og:type"               content="website" />
-  <meta property="og:url"                content="${safeUrl}" />
+  <!-- og:url = displayUrl → Facebook hiện domain này, KHÔNG phải domain Vercel -->
+  <meta property="og:url"                content="${displayUrl}" />
   <meta property="og:title"              content="${safeTitle}" />
   <meta property="og:description"        content="${safeDesc}" />
   <meta property="og:image"              content="${safeImage}" />
+  <meta property="og:image:type"         content="image/jpeg" />
   <meta property="og:image:width"        content="1200" />
   <meta property="og:image:height"       content="630" />
-  <meta property="og:image:type"         content="image/jpeg" />
   <meta property="og:locale"             content="vi_VN" />
-  <meta property="og:site_name"          content="Link Preview" />
+  ${siteName ? `<meta property="og:site_name" content="${siteName}" />` : "<!-- og:site_name ẩn -->"}
 
   <!-- Twitter Card (X / Telegram preview) -->
   <meta name="twitter:card"              content="summary_large_image" />
@@ -185,7 +213,7 @@ export default async function handler(req, res) {
     return res.status(500).send("Lỗi máy chủ khi truy xuất dữ liệu.");
   }
 
-  const { targetUrl, imageUrl, title, description } = linkData;
+  const { targetUrl, imageUrl, title, description, fakeDomain } = linkData;
 
   // Xây dựng short URL hiện tại
   const host =
@@ -206,7 +234,7 @@ export default async function handler(req, res) {
     res.setHeader("Cache-Control", "public, max-age=60, s-maxage=60");
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     return res.status(200).send(
-      buildBotHtml({ title, description, imageUrl, shortUrl })
+      buildBotHtml({ title, description, imageUrl, shortUrl, targetUrl, fakeDomain })
     );
   } else {
     // Người dùng thật: không cache, redirect ngay

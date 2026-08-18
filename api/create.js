@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { targetUrl, imageUrl, title, description } = req.body;
+    const { targetUrl, imageUrl, title, description, fakeDomain } = req.body;
 
     // Validate bắt buộc
     if (!targetUrl || !imageUrl || !title) {
@@ -40,6 +40,12 @@ export default async function handler(req, res) {
         .json({ error: "targetUrl hoặc imageUrl không phải URL hợp lệ." });
     }
 
+    // Validate fakeDomain nếu có (chỉ nhận tên miền, không nhận path nguy hiểm)
+    let cleanFakeDomain = "";
+    if (fakeDomain && fakeDomain.trim()) {
+      cleanFakeDomain = fakeDomain.trim().replace(/^https?:\/\//, "").split("/")[0];
+    }
+
     // Tạo slug ngẫu nhiên 6 ký tự (URL-safe)
     const slug = nanoid(6);
     const key = `link:${slug}`;
@@ -50,6 +56,7 @@ export default async function handler(req, res) {
       imageUrl: imageUrl.trim(),
       title: title.trim(),
       description: (description || "").trim(),
+      fakeDomain: cleanFakeDomain,
       createdAt: new Date().toISOString(),
     };
 
