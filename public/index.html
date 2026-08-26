@@ -420,6 +420,19 @@
               <textarea id="dyOriginalText" rows="2" class="inp resize-none text-slate-300" placeholder="Dan hoac nhap van ban goc can dich (hoac bam 'Tu dong nghe tu video')..." oninput="doTranslateScript()"></textarea>
             </div>
 
+            <!-- CHON NHANH KICH BAN MAU -->
+            <div class="p-2.5 rounded-xl bg-white/[.03] border border-white/10 space-y-1.5">
+              <div class="text-[.72rem] font-bold text-slate-300 flex items-center gap-1.5">
+                <span>✨ Chon nhanh mau kich ban (neu video khong co san chu):</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="applyQuickScript('review')" class="btn-ghost py-1 px-2 text-[.7rem] text-pink-300 border-pink-500/25 hover:bg-pink-500/10">&#128722; Review San Pham</button>
+                <button type="button" onclick="applyQuickScript('cooking')" class="btn-ghost py-1 px-2 text-[.7rem] text-amber-300 border-amber-500/25 hover:bg-amber-500/10">&#127858; Am Thuc &amp; Nau An</button>
+                <button type="button" onclick="applyQuickScript('fashion')" class="btn-ghost py-1 px-2 text-[.7rem] text-indigo-300 border-indigo-500/25 hover:bg-indigo-500/10">&#128087; Thoi Trang &amp; OOTD</button>
+                <button type="button" onclick="applyQuickScript('lifehack')" class="btn-ghost py-1 px-2 text-[.7rem] text-emerald-300 border-emerald-500/25 hover:bg-emerald-500/10">&#128161; Meo Vat Doi Song</button>
+              </div>
+            </div>
+
             <!-- KICH BAN TIENG VIET -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
@@ -1927,6 +1940,24 @@ function doTranscribeVideoSpeech() {
     toast('Khong the khoi dong nhan dien am thanh.');
     dyIsTranscribing = false;
   }
+}
+
+function applyQuickScript(type) {
+  const templates = {
+    review: 'Chào mọi người, hôm nay mình review sản phẩm này siêu tiện lợi và đáng tiền.\nChất lượng cực kỳ tốt, dùng rất ưng ý.\nLink sản phẩm mình để ở bên dưới, mọi người tham khảo nhé!',
+    cooking: 'Hôm nay cùng mình làm món ngon này siêu đơn giản tại nhà nhé.\nNguyên liệu chuẩn bị rất dễ, làm nhanh mà ăn cực cuốn.\nChúc các bạn làm thành công và ăn ngon miệng!',
+    fashion: 'Hôm nay mình gợi ý cho các bạn set đồ cực kỳ tôn dáng và thanh lịch.\nPhối đồ đi làm hay đi chơi đều siêu xinh.\nMọi người lưu lại để thử ngay nhé!',
+    lifehack: 'Mẹo này cực kỳ hay và hữu ích mà ít ai biết đến.\nÁp dụng vào cuộc sống hàng ngày tiện lợi vô cùng.\nXem hết video để làm theo nhé!'
+  };
+
+  const chosen = templates[type] || templates.review;
+  $('dyScriptInput').value = chosen;
+  onScriptInputChange();
+  ensureSubtitlesFromScript();
+  updateSrtDisplay();
+  setupLiveSubtitleSync();
+  $('dyExportVideoBtn').disabled = false;
+  toast('Đã chọn mẫu kịch bản & tự động gắn phụ đề vào video!');
 }
 
 async function doTranslateScript() {
