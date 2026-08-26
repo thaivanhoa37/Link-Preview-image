@@ -125,6 +125,31 @@
       margin-bottom: .5rem;
     }
     .auto-banner-icon { width:36px; height:36px; border-radius:10px; background:rgba(16,185,129,.25); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+    /* === Douyin Reels Styles === */
+    .dy-section { display:none; }
+    .dy-section.show { display:block; }
+    .dy-video-preview { width:100%; max-height:400px; border-radius:14px; background:#000; overflow:hidden; position:relative; }
+    .dy-video-preview video { width:100%; max-height:400px; object-fit:contain; display:block; }
+    .dy-video-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.6rem; min-height:180px; color:#64748b; }
+    .dy-hashtag-chips { display:flex; flex-wrap:wrap; gap:.5rem; }
+    .dy-chip { display:inline-flex; align-items:center; gap:.3rem; padding:.35rem .7rem; border-radius:999px; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s; border:1.5px solid; user-select:none; }
+    .dy-chip-active { background:rgba(236,72,153,.18); border-color:rgba(236,72,153,.5); color:#f472b6; }
+    .dy-chip-inactive { background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.1); color:#64748b; }
+    .dy-chip-inactive:hover { border-color:rgba(255,255,255,.2); color:#94a3b8; }
+    .dy-chip-remove { width:14px; height:14px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,.15); font-size:.6rem; cursor:pointer; }
+    .dy-chip-add { background:rgba(139,92,246,.12); border-color:rgba(139,92,246,.3); color:#a78bfa; border-style:dashed; }
+    .dy-chip-add:hover { background:rgba(139,92,246,.2); border-color:rgba(139,92,246,.5); }
+    .dy-caption-preview { background:rgba(0,0,0,.4); border:1.5px solid rgba(255,255,255,.08); border-radius:14px; padding:1rem 1.2rem; font-size:.88rem; line-height:1.6; color:#e2e8f0; white-space:pre-wrap; word-break:break-word; min-height:80px; font-family:inherit; }
+    .dy-progress { height:4px; background:rgba(255,255,255,.08); border-radius:99px; overflow:hidden; }
+    .dy-progress-bar { height:100%; background:linear-gradient(90deg,#ec4899,#a855f7); border-radius:99px; transition:width .3s; width:0%; }
+    .btn-pink { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; background:linear-gradient(135deg,#ec4899,#a855f7); border:none; border-radius:12px; padding:.85rem 2rem; font-size:.95rem; font-weight:700; color:#fff; cursor:pointer; width:100%; transition:transform .15s,box-shadow .15s,filter .15s; box-shadow:0 4px 24px rgba(236,72,153,.4); letter-spacing:.01em; font-family:inherit; }
+    .btn-pink:hover { transform:translateY(-2px); filter:brightness(1.1); box-shadow:0 8px 32px rgba(236,72,153,.5); }
+    .btn-pink:active { transform:translateY(0); }
+    .btn-pink:disabled { opacity:.45; cursor:not-allowed; transform:none; filter:none; }
+    .btn-teal { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; background:linear-gradient(135deg,#14b8a6,#0d9488); border:none; border-radius:12px; padding:.85rem 2rem; font-size:.95rem; font-weight:700; color:#fff; cursor:pointer; width:100%; transition:transform .15s,box-shadow .15s,filter .15s; box-shadow:0 4px 24px rgba(20,184,166,.4); letter-spacing:.01em; font-family:inherit; }
+    .btn-teal:hover { transform:translateY(-2px); filter:brightness(1.1); }
+    .btn-teal:disabled { opacity:.45; cursor:not-allowed; transform:none; filter:none; }
   </style>
 </head>
 <body>
@@ -162,14 +187,18 @@
   </div>
 
   <!-- MODE SWITCH TABS -->
-  <div class="flex p-1.5 bg-white/[.04] border border-white/10 rounded-2xl mb-8 max-w-xl mx-auto fade-up">
+  <div class="flex p-1.5 bg-white/[.04] border border-white/10 rounded-2xl mb-8 max-w-2xl mx-auto fade-up" style="gap:4px">
     <button id="modeQuickBtn" type="button" onclick="switchToolMode('quick')"
-      class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25">
-      <span>&#9889; An Link Shopee (Khong can anh)</span>
+      class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25">
+      <span>&#9889; An Link Shopee</span>
     </button>
     <button id="modePreviewBtn" type="button" onclick="switchToolMode('preview')"
-      class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200">
-      <span>&#128444;&#65039; Tao Preview Anh Lon (Facebook)</span>
+      class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200">
+      <span>&#128444;&#65039; Preview Anh Lon</span>
+    </button>
+    <button id="modeDouyinBtn" type="button" onclick="switchToolMode('douyin')"
+      class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200">
+      <span>&#127916; Douyin → Reels</span>
     </button>
   </div>
 
@@ -244,7 +273,175 @@
         </div>
       </div>
 
-      <!-- BUOC 1: UPLOAD (DANG PREVIEW ANH LON) -->
+      <!-- ══════════════════════════════════════════════════════════════ -->
+      <!-- CHE DO DOUYIN → REELS                                        -->
+      <!-- ══════════════════════════════════════════════════════════════ -->
+      <div id="douyinModeSection" class="dy-section space-y-4">
+
+        <!-- BUOC 1: DAN LINK DOUYIN -->
+        <div class="step-card active fade-up" id="dyCard1" style="animation-delay:.05s">
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[.08]">
+            <div class="flex items-center gap-3">
+              <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;font-weight:800;box-shadow:0 4px 16px rgba(236,72,153,.4)">
+                1
+              </div>
+              <div>
+                <div class="text-base font-bold text-white">Dan link Douyin / TikTok</div>
+                <div class="text-xs text-slate-400">Dan link video &rarr; tu dong tai ve khong watermark</div>
+              </div>
+            </div>
+            <span class="tag" style="background:rgba(236,72,153,.18);color:#f472b6;border:1px solid rgba(236,72,153,.3)">&#127916; Video</span>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label for="dyUrlInput" class="block text-xs font-semibold text-slate-300 mb-1.5">&#128279; Link video Douyin / TikTok <span class="text-rose-400">*</span></label>
+              <div class="flex gap-2">
+                <input id="dyUrlInput" type="url" class="inp flex-1" placeholder="https://v.douyin.com/xxx hoac https://www.tiktok.com/@user/video/xxx" autocomplete="off" spellcheck="false" />
+                <button id="dyFetchBtn" class="btn-pink" style="width:auto;padding:.75rem 1.5rem;white-space:nowrap" onclick="doFetchDouyin()">
+                  <div class="btn-spinner" id="dyFetchSpinner"></div>
+                  <span class="btn-lbl flex items-center gap-1.5">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Tai Video
+                  </span>
+                </button>
+              </div>
+              <div class="mt-1.5 text-[.7rem] text-slate-500">Ho tro: Douyin (抖音), TikTok &mdash; Tu dong tai video khong co watermark.</div>
+            </div>
+
+            <!-- PROGRESS -->
+            <div id="dyFetchProgress" class="hidden">
+              <div class="dy-progress"><div class="dy-progress-bar" id="dyProgressBar"></div></div>
+              <div class="text-xs text-slate-400 mt-1.5 text-center" id="dyFetchStatus">Dang ket noi...</div>
+            </div>
+
+            <!-- VIDEO PREVIEW -->
+            <div id="dyVideoPreview" class="hidden">
+              <div class="dy-video-preview">
+                <video id="dyVideoPlayer" controls playsinline preload="metadata"></video>
+              </div>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="tag tag-v" id="dyPlatformTag">Douyin</span>
+                <span class="tag tag-g" id="dyDurationTag">0s</span>
+                <span id="dyAuthorTag" class="text-xs text-slate-400"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUOC 2: CHINH SUA NOI DUNG -->
+        <div class="step-card fade-up" id="dyCard2" style="animation-delay:.1s">
+          <div class="flex items-center gap-3 mb-4 pb-3 border-b border-white/[.08]">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:800;box-shadow:0 4px 16px rgba(168,85,247,.4)">
+              2
+            </div>
+            <div>
+              <div class="text-base font-bold text-white">Chinh sua noi dung Reels</div>
+              <div class="text-xs text-slate-400">Tieu de + hashtag + link tiep thi lien ket</div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- TIEU DE -->
+            <div>
+              <label for="dyTitleInput" class="block text-xs font-semibold text-slate-300 mb-1.5">&#128221; Tieu de Reels</label>
+              <textarea id="dyTitleInput" rows="2" class="inp resize-none" placeholder="Nhap tieu de video Reels..." maxlength="500" oninput="dyUpdateCaption()"></textarea>
+              <div class="text-right mt-1"><span id="dyTitleCount" class="text-[.68rem] text-slate-600">0/500</span></div>
+            </div>
+
+            <!-- HASHTAG -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-2">&#127991;&#65039; Hashtag <span class="text-slate-500 font-normal">(click de them/xoa)</span></label>
+              <div id="dyHashtagChips" class="dy-hashtag-chips">
+                <!-- chips se duoc render bang JS -->
+              </div>
+              <div class="flex gap-2 mt-2">
+                <input id="dyNewHashtag" type="text" class="inp" style="flex:1;padding:.5rem .8rem;font-size:.82rem" placeholder="Nhap hashtag moi..." onkeydown="if(event.key==='Enter'){event.preventDefault();dyAddCustomHashtag();}" />
+                <button type="button" class="btn-ghost" style="padding:.5rem .8rem;font-size:.78rem;font-weight:700" onclick="dyAddCustomHashtag()">+ Them</button>
+              </div>
+            </div>
+
+            <!-- AFFILIATE LINK -->
+            <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:.9rem;margin-top:.4rem">
+              <label for="dyAffiliateLink" class="block text-xs font-semibold text-pink-400 mb-1.5">&#128279; Link tiep thi lien ket (Affiliate Link) <span class="text-slate-500 font-normal">(khong bat buoc)</span></label>
+              <input id="dyAffiliateLink" type="url" class="inp" placeholder="https://shope.ee/xxx hoac https://s.lazada.vn/..." autocomplete="off" spellcheck="false" oninput="dyUpdateCaption()" />
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <span class="text-[.7rem] text-slate-400 w-full mb-0.5 font-semibold">&#128073; Chon nhanh san:</span>
+                <button type="button" onclick="$('dyAffiliateLink').focus()" style="padding:.3rem .65rem;border-radius:6px;background:rgba(238,77,45,.15);border:1px solid rgba(238,77,45,.4);font-size:.72rem;font-weight:700;color:#ff7355;cursor:pointer;font-family:inherit">&#128722; Shopee</button>
+                <button type="button" onclick="$('dyAffiliateLink').focus()" style="padding:.3rem .65rem;border-radius:6px;background:rgba(6,87,255,.12);border:1px solid rgba(6,87,255,.3);font-size:.72rem;font-weight:700;color:#60a5fa;cursor:pointer;font-family:inherit">Lazada</button>
+                <button type="button" onclick="$('dyAffiliateLink').focus()" style="padding:.3rem .65rem;border-radius:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);font-size:.72rem;font-weight:700;color:#e2e8f0;cursor:pointer;font-family:inherit">TikTok Shop</button>
+              </div>
+            </div>
+
+            <!-- CTA TEXT -->
+            <div>
+              <label for="dyCTAInput" class="block text-xs font-semibold text-purple-400 mb-1.5">&#9999;&#65039; Noi dung CTA di kem link <span class="text-slate-500 font-normal">(mac dinh: "&#128722; Mua ngay:")</span></label>
+              <input id="dyCTAInput" type="text" class="inp" value="&#128722; Mua ngay:" placeholder="VD: &#128073; Link san pham: hoac &#128293; Xem them:" oninput="dyUpdateCaption()" />
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <button type="button" onclick="$('dyCTAInput').value='&#128722; Mua ngay:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#128722; Mua ngay:</button>
+                <button type="button" onclick="$('dyCTAInput').value='&#128073; Link san pham:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#128073; Link san pham:</button>
+                <button type="button" onclick="$('dyCTAInput').value='&#128293; Xem them:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#128293; Xem them:</button>
+                <button type="button" onclick="$('dyCTAInput').value='&#127381; Uu dai:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#127381; Uu dai:</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- XEM TRUOC CAPTION + HANH DONG -->
+        <div class="step-card fade-up" id="dyCard3" style="animation-delay:.15s">
+          <div class="flex items-center gap-3 mb-4 pb-3 border-b border-white/[.08]">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:800;box-shadow:0 4px 16px rgba(20,184,166,.4)">
+              3
+            </div>
+            <div>
+              <div class="text-base font-bold text-white">Tai ve &amp; Copy caption</div>
+              <div class="text-xs text-slate-400">Tai video + copy caption &rarr; dang len Facebook Reels</div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- CAPTION PREVIEW -->
+            <div>
+              <label class="block text-xs font-semibold text-teal-400 mb-2">&#128065;&#65039; Xem truoc Caption (se paste vao Facebook):</label>
+              <div id="dyCaptionPreview" class="dy-caption-preview">
+                <span class="text-slate-500 italic">Caption se hien o day khi ban nhap thong tin...</span>
+              </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="grid grid-cols-2 gap-3">
+              <button id="dyDownloadBtn" class="btn-teal" onclick="dyDownloadVideo()" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                &#11015;&#65039; Tai Video
+              </button>
+              <button id="dyCopyBtn" class="btn-pink" onclick="dyCopyCaption()" disabled>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                &#128203; Copy Caption
+              </button>
+            </div>
+
+            <!-- HUONG DAN NHANH -->
+            <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
+              <div class="text-xs font-bold text-purple-300 mb-1.5">&#128161; Huong dan dang Reels len trang ca nhan:</div>
+              <div class="space-y-1.5 text-xs text-slate-400">
+                <div class="flex gap-2 items-start"><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0">1</div><span>Bam <strong class="text-white">"Tai Video"</strong> &rarr; luu file video ve may.</span></div>
+                <div class="flex gap-2 items-start"><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0">2</div><span>Bam <strong class="text-white">"Copy Caption"</strong> &rarr; caption vao clipboard.</span></div>
+                <div class="flex gap-2 items-start"><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0">3</div><span>Mo <strong class="text-white">Facebook</strong> &rarr; Tao Reels &rarr; Chon video &rarr; <strong class="text-white">Paste caption</strong> &rarr; Dang!</span></div>
+              </div>
+            </div>
+
+            <!-- RESET -->
+            <button class="btn-ghost w-full justify-center text-xs" onclick="dyReset()" style="font-family:inherit">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Lam moi — Tai video khac
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <!-- END DOUYIN MODE -->
+
+
       <div class="step-card active fade-up hidden" id="card1" style="animation-delay:.05s">
         <div class="flex items-center gap-3 mb-4">
           <div class="step-badge active" id="badge1">1</div>
@@ -1098,19 +1295,31 @@ function switchToolMode(m) {
   const connectors = document.querySelectorAll('.step-connector');
   const btnQ       = $('modeQuickBtn');
   const btnP       = $('modePreviewBtn');
+  const btnD       = $('modeDouyinBtn');
+  const douyinSec  = $('douyinModeSection');
+
+  // Inactive class for all buttons
+  const inactiveClass = 'flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200';
+
+  // Reset all
+  if (quickCard) quickCard.classList.add('hidden');
+  stepCards.forEach(c => c?.classList.add('hidden'));
+  connectors.forEach(c => c.style.display = 'none');
+  if (douyinSec) douyinSec.classList.remove('show');
+  if (btnQ) btnQ.className = inactiveClass;
+  if (btnP) btnP.className = inactiveClass;
+  if (btnD) btnD.className = inactiveClass;
 
   if (m === 'quick') {
     if (quickCard) quickCard.classList.remove('hidden');
-    stepCards.forEach(c => c?.classList.add('hidden'));
-    connectors.forEach(c => c.style.display = 'none');
-    if (btnQ) btnQ.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25';
-    if (btnP) btnP.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200';
+    if (btnQ) btnQ.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25';
+  } else if (m === 'douyin') {
+    if (douyinSec) douyinSec.classList.add('show');
+    if (btnD) btnD.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/25';
   } else {
-    if (quickCard) quickCard.classList.add('hidden');
     stepCards.forEach(c => c?.classList.remove('hidden'));
     connectors.forEach(c => c.style.display = 'flex');
-    if (btnP) btnP.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/25';
-    if (btnQ) btnQ.className = 'flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200';
+    if (btnP) btnP.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/25';
   }
 }
 
@@ -1287,6 +1496,276 @@ function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('
 
 /* ======================== INIT ========================= */
 syncText(); syncDomain(); renderHistory(); setUState('idle'); switchToolMode('quick');
+
+/* ================================================================ */
+/* =================== DOUYIN → REELS MODULE ====================== */
+/* ================================================================ */
+
+let dyVideoData = null;   // luu du lieu video da fetch
+let dyHashtags  = [];     // mang hashtag hien tai
+let dyActiveHashtags = new Set(); // set cac hashtag dang bat
+
+// Restore CTA tu localStorage
+(function(){
+  const savedCTA = localStorage.getItem('dy_cta');
+  if (savedCTA && $('dyCTAInput')) $('dyCTAInput').value = savedCTA;
+})();
+
+/* ---- FETCH VIDEO ---- */
+async function doFetchDouyin() {
+  const url = ($('dyUrlInput')?.value || '').trim();
+  if (!url) { toast('Vui long dan link video Douyin / TikTok!'); return; }
+
+  const btn = $('dyFetchBtn');
+  btn.disabled = true; btn.classList.add('is-loading');
+  $('dyFetchProgress').classList.remove('hidden');
+  $('dyVideoPreview').classList.add('hidden');
+
+  // Fake progress
+  let prog = 0;
+  const progTimer = setInterval(() => {
+    prog += Math.random() * 15;
+    if (prog > 85) { clearInterval(progTimer); prog = 85; }
+    $('dyProgressBar').style.width = prog + '%';
+    $('dyFetchStatus').textContent = prog < 30 ? 'Dang ket noi den Douyin...' : prog < 60 ? 'Dang phan tich video...' : 'Dang lay link khong watermark...';
+  }, 250);
+
+  try {
+    const res = await fetch('/api/douyin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    clearInterval(progTimer);
+
+    if (!res.ok || !data.success) {
+      toast(data.error || 'Khong the tai video. Thu lai!');
+      $('dyFetchProgress').classList.add('hidden');
+      return;
+    }
+
+    $('dyProgressBar').style.width = '100%';
+    $('dyFetchStatus').textContent = 'Thanh cong!';
+
+    // Luu data
+    dyVideoData = data;
+
+    // Hien thi video preview
+    setTimeout(() => {
+      $('dyFetchProgress').classList.add('hidden');
+      $('dyVideoPreview').classList.remove('hidden');
+
+      if (data.videoUrl) {
+        $('dyVideoPlayer').src = data.videoUrl;
+      }
+
+      $('dyPlatformTag').textContent = data.platform === 'douyin' ? 'Douyin' : 'TikTok';
+      $('dyDurationTag').textContent = data.duration ? data.duration + 's' : 'N/A';
+      $('dyAuthorTag').textContent = data.author ? '@ ' + data.author : '';
+
+      // Dien tieu de goc
+      if (data.title && $('dyTitleInput')) {
+        // Loai bo hashtag khoi tieu de goc
+        let cleanTitle = data.title.replace(/#[\w\u00C0-\u024F\u4e00-\u9fff]+/g, '').trim();
+        $('dyTitleInput').value = cleanTitle;
+        $('dyTitleCount').textContent = cleanTitle.length + '/500';
+      }
+
+      // Render hashtag
+      dyHashtags = data.suggestedHashtags || ['viral','reels','fyp','trending'];
+      dyActiveHashtags = new Set(dyHashtags);
+      dyRenderHashtags();
+
+      // Enable buttons
+      $('dyDownloadBtn').disabled = false;
+      $('dyCopyBtn').disabled = false;
+
+      // Activate cards
+      $('dyCard2').classList.add('active');
+      $('dyCard3').classList.add('active');
+
+      dyUpdateCaption();
+      toast('Da lay video thanh cong!');
+    }, 500);
+
+  } catch (err) {
+    clearInterval(progTimer);
+    console.error('[Douyin]', err);
+    toast('Loi ket noi. Vui long thu lai!');
+    $('dyFetchProgress').classList.add('hidden');
+  } finally {
+    btn.disabled = false; btn.classList.remove('is-loading');
+  }
+}
+
+/* ---- HASHTAG MANAGEMENT ---- */
+function dyRenderHashtags() {
+  const container = $('dyHashtagChips');
+  if (!container) return;
+  container.innerHTML = '';
+
+  dyHashtags.forEach(tag => {
+    const isActive = dyActiveHashtags.has(tag);
+    const chip = document.createElement('span');
+    chip.className = 'dy-chip ' + (isActive ? 'dy-chip-active' : 'dy-chip-inactive');
+    chip.innerHTML = '#' + esc(tag) + (isActive ? ' <span class="dy-chip-remove" onclick="event.stopPropagation();dyRemoveHashtag(\'' + escJs(tag) + '\')">×</span>' : '');
+    chip.onclick = () => {
+      if (isActive) {
+        dyActiveHashtags.delete(tag);
+      } else {
+        dyActiveHashtags.add(tag);
+      }
+      dyRenderHashtags();
+      dyUpdateCaption();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function dyRemoveHashtag(tag) {
+  dyHashtags = dyHashtags.filter(t => t !== tag);
+  dyActiveHashtags.delete(tag);
+  dyRenderHashtags();
+  dyUpdateCaption();
+}
+
+function dyAddCustomHashtag() {
+  const input = $('dyNewHashtag');
+  let tag = (input?.value || '').trim().replace(/^#/, '').replace(/\s+/g, '_').toLowerCase();
+  if (!tag || tag.length < 1) { toast('Nhap hashtag truoc!'); return; }
+  if (tag.length > 30) { toast('Hashtag qua dai (toi da 30 ky tu)'); return; }
+  if (dyHashtags.includes(tag)) { toast('Hashtag nay da co roi!'); return; }
+  dyHashtags.push(tag);
+  dyActiveHashtags.add(tag);
+  dyRenderHashtags();
+  dyUpdateCaption();
+  input.value = '';
+  toast('Da them #' + tag);
+}
+
+/* ---- CAPTION GENERATION ---- */
+function dyUpdateCaption() {
+  const title     = ($('dyTitleInput')?.value || '').trim();
+  const affiliate = ($('dyAffiliateLink')?.value || '').trim();
+  const cta       = ($('dyCTAInput')?.value || '').trim();
+
+  // Update character count
+  $('dyTitleCount').textContent = title.length + '/500';
+
+  // Save CTA to localStorage
+  if (cta) localStorage.setItem('dy_cta', cta);
+
+  // Build caption
+  let caption = '';
+
+  if (title) {
+    caption += title;
+  }
+
+  if (affiliate) {
+    caption += '\n\n' + (cta ? cta + ' ' : '') + affiliate;
+  }
+
+  // Add hashtags
+  const activeTagsArr = Array.from(dyActiveHashtags);
+  if (activeTagsArr.length > 0) {
+    caption += '\n\n' + activeTagsArr.map(t => '#' + t).join(' ');
+  }
+
+  // Update preview
+  const preview = $('dyCaptionPreview');
+  if (preview) {
+    if (caption.trim()) {
+      preview.textContent = caption;
+    } else {
+      preview.innerHTML = '<span class="text-slate-500 italic">Caption se hien o day khi ban nhap thong tin...</span>';
+    }
+  }
+
+  return caption;
+}
+
+/* ---- DOWNLOAD VIDEO ---- */
+function dyDownloadVideo() {
+  if (!dyVideoData?.videoUrl) {
+    toast('Chua co video de tai! Hay dan link va bam Tai Video truoc.');
+    return;
+  }
+
+  // Mo link tai video trong tab moi
+  const a = document.createElement('a');
+  a.href = dyVideoData.videoUrl;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.download = 'douyin_reels_' + Date.now() + '.mp4';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  toast('Dang tai video... Kiem tra thu muc Downloads!');
+}
+
+/* ---- COPY CAPTION ---- */
+async function dyCopyCaption() {
+  const caption = dyUpdateCaption();
+  if (!caption.trim()) {
+    toast('Chua co noi dung caption de copy!');
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(caption);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = caption;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+
+  const btn = $('dyCopyBtn');
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Da copy!';
+  btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
+  btn.style.boxShadow = '0 4px 24px rgba(16,185,129,.4)';
+  toast('Da copy caption! Mo Facebook de dang Reels!');
+
+  setTimeout(() => {
+    btn.innerHTML = origHTML;
+    btn.style.background = '';
+    btn.style.boxShadow = '';
+  }, 3000);
+}
+
+/* ---- RESET ---- */
+function dyReset() {
+  dyVideoData = null;
+  dyHashtags = [];
+  dyActiveHashtags = new Set();
+
+  if ($('dyUrlInput')) $('dyUrlInput').value = '';
+  if ($('dyTitleInput')) { $('dyTitleInput').value = ''; $('dyTitleCount').textContent = '0/500'; }
+  if ($('dyAffiliateLink')) $('dyAffiliateLink').value = '';
+  if ($('dyVideoPlayer')) $('dyVideoPlayer').src = '';
+
+  $('dyVideoPreview')?.classList.add('hidden');
+  $('dyFetchProgress')?.classList.add('hidden');
+
+  $('dyDownloadBtn').disabled = true;
+  $('dyCopyBtn').disabled = true;
+
+  $('dyCard2').classList.remove('active');
+  $('dyCard3').classList.remove('active');
+
+  const chipsContainer = $('dyHashtagChips');
+  if (chipsContainer) chipsContainer.innerHTML = '';
+
+  $('dyCaptionPreview').innerHTML = '<span class="text-slate-500 italic">Caption se hien o day khi ban nhap thong tin...</span>';
+
+  toast('Da lam moi! San sang tai video moi.');
+}
 </script>
 </body>
 </html>

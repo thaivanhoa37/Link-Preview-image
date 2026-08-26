@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "api/douyin.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/s/:id",
