@@ -308,18 +308,37 @@
               </div>
             </div>
 
+            <!-- NHANH: MO SNAPDOUYIN / TAPSAVE KHI CAN -->
+            <div class="p-3 rounded-xl bg-pink-500/10 border border-pink-500/20 text-xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-pink-300 flex items-center gap-1.5">&#9889; Tro ly tai Douyin nhanh (neu link bi chan):</span>
+                <span class="text-[.68rem] text-slate-400">100% Khong watermark</span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="openFastDouyinDownloader('snapdouyin')" class="btn-ghost py-1.5 px-3 text-xs font-bold text-pink-300 border-pink-500/30 hover:bg-pink-500/15">
+                  &#128073; Mo SnapDouyin (1-Click)
+                </button>
+                <button type="button" onclick="openFastDouyinDownloader('tapsave')" class="btn-ghost py-1.5 px-3 text-xs font-bold text-purple-300 border-purple-500/30 hover:bg-purple-500/15">
+                  &#128073; Mo TapSave (1-Click)
+                </button>
+              </div>
+              <div class="text-[.7rem] text-slate-400 leading-relaxed">
+                Do he thong bao mat cua Douyin kiem duyet IP may chu, ban co the bam nut tren de tai video ve may trong 3 giay, sau do chon file vao Studio de <strong class="text-white">tu dong dich, gan phu de .SRT &amp; long tieng AI!</strong>
+              </div>
+            </div>
+
             <!-- HOAC TAI FILE TU MAY -->
             <div class="flex items-center gap-3 my-2">
               <div class="h-px bg-white/10 flex-1"></div>
-              <span class="text-[.7rem] text-slate-500 font-semibold uppercase tracking-wider">Hoac tai file tu may</span>
+              <span class="text-[.7rem] text-slate-500 font-semibold uppercase tracking-wider">Tai file video vao Studio</span>
               <div class="h-px bg-white/10 flex-1"></div>
             </div>
 
             <div class="flex justify-center">
               <input type="file" id="dyLocalFileInput" accept="video/mp4,video/webm,video/quicktime" class="hidden" onchange="handleLocalVideoFile(event)" />
-              <button type="button" onclick="$('dyLocalFileInput').click()" class="btn-ghost w-full justify-center py-2.5 text-xs font-bold border-dashed border-violet-500/40 text-violet-300 hover:bg-violet-500/10">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                &#128194; Chon file video tu may tinh (MP4 / WebM)
+              <button type="button" onclick="$('dyLocalFileInput').click()" class="btn-ghost w-full justify-center py-3 text-xs font-bold border-dashed border-emerald-500/40 text-emerald-300 bg-emerald-500/5 hover:bg-emerald-500/15">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                &#128194; Chon file video tu may tinh (MP4 / WebM) de Gan Phu De &amp; Long Tieng
               </button>
             </div>
 
@@ -360,27 +379,45 @@
 
         <!-- BUOC 2: DICH THUAT & KICH BAN TIENG VIET -->
         <div class="step-card fade-up" id="dyCard2" style="animation-delay:.1s">
-          <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[.08]">
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[.08] flex-wrap gap-2">
             <div class="flex items-center gap-3">
               <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:800;box-shadow:0 4px 16px rgba(59,130,246,.4)">
                 2
               </div>
               <div>
-                <div class="text-base font-bold text-white">Dich thong minh &amp; Kich ban loi thoai</div>
-                <div class="text-xs text-slate-400">Tu dong dich tu tieng Trung/Anh sang tieng Viet chuan xac</div>
+                <div class="text-base font-bold text-white">Nhan dien loi thoai &amp; Dich tieng Viet</div>
+                <div class="text-xs text-slate-400">Tu dong nhan dien giong noi &amp; dich sang tieng Viet</div>
               </div>
             </div>
-            <button type="button" class="btn-ghost text-xs font-bold text-blue-400" onclick="doTranslateScript()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              &#127760; Dich sang Tieng Viet
-            </button>
+
+            <!-- TUY CHON NGON NGU GOC -->
+            <div class="flex items-center gap-2">
+              <select id="dySourceLangSelect" class="inp py-1.5 px-2.5 text-xs font-semibold bg-white/[.06] border-white/10" onchange="doTranslateScript()">
+                <option value="auto" selected>&#127760; Tu dong nhan dien</option>
+                <option value="zh-CN">&#127464;&#127475; Tieng Trung (Douyin)</option>
+                <option value="en">&#127482;&#127488; Tieng Anh (English)</option>
+                <option value="ko">&#127472;&#127479; Tieng Han (Korean)</option>
+                <option value="ja">&#127471;&#127477; Tieng Nhat (Japanese)</option>
+                <option value="th">&#127481;&#127469; Tieng Thai (Thai)</option>
+              </select>
+              <button type="button" class="btn-ghost text-xs font-bold text-blue-400 py-1.5" onclick="doTranslateScript()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Dich Ngay
+              </button>
+            </div>
           </div>
 
           <div class="space-y-4">
-            <!-- NOI DUNG GOC -->
+            <!-- NOI DUNG GOC & NUT NHAN DIEN GIONG NOI TU VIDEO -->
             <div>
-              <label for="dyOriginalText" class="block text-xs font-semibold text-slate-400 mb-1.5">&#128196; Van ban / Tieu de goc cua video (Tieng Trung, Tieng Anh...)</label>
-              <textarea id="dyOriginalText" rows="2" class="inp resize-none text-slate-300" placeholder="Dan hoac nhap van ban goc can dich..."></textarea>
+              <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                <label for="dyOriginalText" class="text-xs font-semibold text-slate-400">&#128196; Van ban / Loi thoai goc cua video:</label>
+                <button type="button" id="dyTranscribeBtn" onclick="doTranscribeVideoSpeech()" class="btn-ghost py-1 px-2.5 text-[.72rem] font-bold text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/10">
+                  <span id="dyTranscribeIcon">&#127897;&#65039;</span>
+                  <span id="dyTranscribeLabel">Tu dong nghe &amp; trich xuat tu Video</span>
+                </button>
+              </div>
+              <textarea id="dyOriginalText" rows="2" class="inp resize-none text-slate-300" placeholder="Dan hoac nhap van ban goc can dich (hoac bam 'Tu dong nghe tu video')..." oninput="doTranslateScript()"></textarea>
             </div>
 
             <!-- KICH BAN TIENG VIET -->
@@ -1691,6 +1728,17 @@ async function doFetchDouyin() {
   }
 }
 
+// Mo nhanh trang tai video Douyin khong logo
+function openFastDouyinDownloader(service) {
+  const url = ($('dyUrlInput')?.value || '').trim();
+  if (url) {
+    try { navigator.clipboard.writeText(url); } catch {}
+  }
+  const target = service === 'tapsave' ? 'https://tapsave.net/vi' : 'https://snapdouyin.app/vi';
+  window.open(target, '_blank');
+  toast('Da copy link & mo trang tai! Sau khi tai xong, hay bam chon file de dich & long tieng.');
+}
+
 // Chon file video tu may
 function handleLocalVideoFile(event) {
   const file = event.target.files?.[0];
@@ -1797,31 +1845,114 @@ function dyLoadVideoSource(data) {
   dyUpdateCaption();
 }
 
-/* ---- 2. DICH THUAT KICH BAN SANG TIENG VIET ---- */
-async function doTranslateScript() {
-  const text = ($('dyOriginalText')?.value || '').trim();
-  if (!text) {
-    toast('Chua co van ban goc de dich.');
+/* ---- 2. DICH THUAT KICH BAN SANG TIENG VIET & SPEECH TO TEXT ---- */
+let dyRecognition = null;
+let dyIsTranscribing = false;
+
+function doTranscribeVideoSpeech() {
+  const player = $('dyVideoPlayer');
+  if (!player || !player.src) {
+    toast('Vui long chon hoac nap video truoc khi nhan dien giong noi!');
     return;
   }
 
-  toast('Dang dich sang Tieng Viet...');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Trinh duyet cua ban khong ho tro Web Speech Recognition truc tiep. Ban co the dan van ban / tieu de vao o tren de he thong tu dong dich sang Tieng Viet ngay!');
+    return;
+  }
+
+  if (dyIsTranscribing) {
+    if (dyRecognition) dyRecognition.stop();
+    dyIsTranscribing = false;
+    $('dyTranscribeLabel').textContent = 'Tu dong nghe & trich xuat tu Video';
+    $('dyTranscribeIcon').textContent = '🎙️';
+    player.pause();
+    toast('Da dung nhan dien giong noi.');
+    return;
+  }
+
+  const lang = $('dySourceLangSelect')?.value || 'auto';
+  const recLang = (lang === 'auto' || lang === 'zh-CN') ? 'zh-CN' : lang === 'en' ? 'en-US' : lang === 'ko' ? 'ko-KR' : lang === 'ja' ? 'ja-JP' : lang;
+
+  try {
+    dyRecognition = new SpeechRecognition();
+    dyRecognition.continuous = true;
+    dyRecognition.interimResults = true;
+    dyRecognition.lang = recLang;
+
+    let fullTranscript = '';
+    dyIsTranscribing = true;
+    $('dyTranscribeLabel').textContent = 'Dang nghe video... (Bam de dung)';
+    $('dyTranscribeIcon').textContent = '🔴';
+    toast('Dang lang nghe am thanh tu video de trich xuat loi thoai...');
+
+    player.currentTime = 0;
+    player.muted = false;
+    player.play();
+
+    dyRecognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          fullTranscript += event.results[i][0].transcript + ' ';
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      const combined = (fullTranscript + interim).trim();
+      if (combined) {
+        $('dyOriginalText').value = combined;
+      }
+    };
+
+    dyRecognition.onerror = (event) => {
+      console.warn('[Speech Recognition]', event.error);
+    };
+
+    dyRecognition.onend = () => {
+      dyIsTranscribing = false;
+      $('dyTranscribeLabel').textContent = 'Tu dong nghe & trich xuat tu Video';
+      $('dyTranscribeIcon').textContent = '🎙️';
+      const text = ($('dyOriginalText')?.value || '').trim();
+      if (text) {
+        doTranslateScript();
+        toast('Da trich xuat xong loi thoai & tu dong dich sang Tieng Viet!');
+      }
+    };
+
+    dyRecognition.start();
+  } catch (e) {
+    console.error('Speech recognition error:', e);
+    toast('Khong the khoi dong nhan dien am thanh.');
+    dyIsTranscribing = false;
+  }
+}
+
+async function doTranslateScript() {
+  const text = ($('dyOriginalText')?.value || '').trim();
+  const sourceLang = $('dySourceLangSelect')?.value || 'auto';
+
+  if (!text) {
+    return;
+  }
+
+  toast('Dang nhan dien va dich sang Tieng Viet...');
   try {
     const res = await fetch('/api/translate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, targetLang: 'vi' })
+      body: JSON.stringify({ text, sourceLang, targetLang: 'vi' })
     });
     const data = await res.json();
     if (res.ok && data.translatedText) {
       $('dyScriptInput').value = data.translatedText;
       onScriptInputChange();
-      // Tu dong tao phu de srt cho video
       ensureSubtitlesFromScript();
       updateSrtDisplay();
       setupLiveSubtitleSync();
       $('dyExportVideoBtn').disabled = false;
-      toast('Dich xong! Phu de da duoc tu dong gan vao video.');
+      toast('Da tu dong dich & tao phu de Tieng Viet cho video!');
     } else {
       toast('Khong the dich tu dong. Ban co the tu nhap kich ban tieng Viet.');
     }
