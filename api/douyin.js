@@ -1,9 +1,7 @@
 // api/douyin.js — POST /api/douyin
-// Nhận link Douyin, trả về metadata + link video không watermark
-// Sử dụng API công khai douyin.wtf (open-source)
+// Hỗ trợ tải thông tin & video từ Douyin/TikTok qua nhiều cổng fallback
 
 export default async function handler(req, res) {
-  // CORS preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -16,163 +14,139 @@ export default async function handler(req, res) {
     const { url } = req.body;
 
     if (!url || !url.trim()) {
-      return res.status(400).json({ error: "Thiếu trường url (link video Douyin)." });
+      return res.status(400).json({ error: "Thiếu link video Douyin / TikTok." });
     }
 
-    const videoUrl = url.trim();
+    const rawInput = url.trim();
 
-    // Validate: phải là link Douyin hoặc TikTok
-    const isDouyin = /douyin\.com|iesdouyin\.com/i.test(videoUrl);
-    const isTikTok = /tiktok\.com/i.test(videoUrl);
-
-    if (!isDouyin && !isTikTok) {
-      return res.status(400).json({
-        error: "Link không hợp lệ. Vui lòng dán link từ Douyin hoặc TikTok.",
+    // 1. Nếu người dùng dán trực tiếp link file video (.mp4, .webm, cdn video)
+    if (/\.(mp4|webm|mov)(\?.*)?$/i.test(rawInput) || rawInput.includes("douyinvod.com") || rawInput.includes("tiktokcdn.com")) {
+      return res.status(200).json({
+        success: true,
+        videoUrl: rawInput,
+        title: "Video tải trực tiếp",
+        author: "User",
+        thumbnail: "",
+        duration: 30,
+        suggestedHashtags: ["reels", "viral", "trending", "fyp"],
+        platform: "direct",
       });
     }
 
-    // Gọi API douyin.wtf để lấy metadata video
-    const apiUrl = `https://api.douyin.wtf/api/hybrid/video_data?url=${encodeURIComponent(videoUrl)}`;
-
-    const apiRes = await fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-    });
-
-    if (!apiRes.ok) {
-      console.error("[douyin.js] API error status:", apiRes.status);
-      return res.status(502).json({
-        error: "Không thể kết nối API tải video. Vui lòng thử lại sau.",
-        detail: `Status: ${apiRes.status}`,
+    // 2. Thử cổng TikWM API (Hỗ trợ TikTok và một số định dạng Douyin)
+    try {
+      const tikwmUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(rawInput)}`;
+      const tikwmRes = await fetch(tikwmUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Accept: "application/json",
+        },
+        signal: AbortSignal.timeout(6000),
       });
+
+      if (tikwmRes.ok) {
+        const json = await tikwmRes.json();
+        if (json && json.code === 0 && json.data) {
+          const d = json.data;
+          const videoUrl = d.play || d.wmplay || d.hdplay;
+          const title = d.title || "";
+          const thumbnail = d.cover || d.origin_cover;
+          const author = d.author?.nickname || d.author?.unique_id || "";
+          const duration = d.duration || 0;
+
+          return res.status(200).json({
+            success: true,
+            videoUrl,
+            title,
+            author,
+            thumbnail,
+            duration,
+            suggestedHashtags: generateHashtags(title),
+            platform: "tiktok",
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("[douyin.js] TikWM fallback failed:", e.message);
     }
 
-    const apiData = await apiRes.json();
-
-    if (!apiData || apiData.status === "failed") {
-      return res.status(404).json({
-        error: "Không tìm thấy video. Kiểm tra lại link Douyin.",
-        detail: apiData?.message || "Video not found",
+    // 3. Thử cổng douyin.wtf API
+    try {
+      const wtfUrl = `https://douyin.wtf/api/hybrid/video_data?url=${encodeURIComponent(rawInput)}&minimal=false`;
+      const wtfRes = await fetch(wtfUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Accept: "application/json",
+        },
+        signal: AbortSignal.timeout(8000),
       });
+
+      if (wtfRes.ok) {
+        const json = await wtfRes.json();
+        const data = json?.data || json;
+        let noWatermarkUrl = data?.nwm_video_url || data?.video?.play_addr?.url_list?.[0] || data?.nwm_video_url_HQ || data?.video_data?.nwm_video_url;
+
+        if (noWatermarkUrl) {
+          const title = data.desc || data.title || "";
+          const thumbnail = data.video?.cover?.url_list?.[0] || data.cover || "";
+          const author = data.author?.nickname || "";
+          const duration = data.video?.duration ? Math.round(data.video.duration / 1000) : 0;
+
+          return res.status(200).json({
+            success: true,
+            videoUrl: noWatermarkUrl,
+            title,
+            author,
+            thumbnail,
+            duration,
+            suggestedHashtags: generateHashtags(title),
+            platform: "douyin",
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("[douyin.js] Douyin.wtf fallback failed:", e.message);
     }
 
-    // Parse dữ liệu trả về
-    const data = apiData.data || apiData;
-
-    // Lấy URL video không watermark
-    let noWatermarkUrl = "";
-    if (data.nwm_video_url) {
-      noWatermarkUrl = data.nwm_video_url;
-    } else if (data.video?.play_addr?.url_list?.length) {
-      noWatermarkUrl = data.video.play_addr.url_list[0];
-    } else if (data.nwm_video_url_HQ) {
-      noWatermarkUrl = data.nwm_video_url_HQ;
-    } else if (data.video_data?.nwm_video_url) {
-      noWatermarkUrl = data.video_data.nwm_video_url;
-    } else if (data.video_data?.nwm_video_url_HQ) {
-      noWatermarkUrl = data.video_data.nwm_video_url_HQ;
-    }
-
-    // Lấy tiêu đề gốc
-    const title = data.desc || data.title || data.share_info?.share_title || "";
-
-    // Lấy thumbnail
-    let thumbnail = "";
-    if (data.video?.cover?.url_list?.length) {
-      thumbnail = data.video.cover.url_list[0];
-    } else if (data.cover || data.origin_cover) {
-      thumbnail = data.cover || data.origin_cover;
-    } else if (data.video_data?.cover) {
-      thumbnail = data.video_data.cover;
-    }
-
-    // Lấy thông tin tác giả
-    const author = data.author?.nickname || data.author?.unique_id || "";
-
-    // Lấy thời lượng video (giây)
-    const duration = data.video?.duration
-      ? Math.round(data.video.duration / 1000)
-      : data.duration || 0;
-
-    // Tự động gợi ý hashtag tiếng Việt
-    const suggestedHashtags = generateHashtags(title, data);
-
-    return res.status(200).json({
-      success: true,
-      videoUrl: noWatermarkUrl,
-      title,
-      author,
-      thumbnail,
-      duration,
-      suggestedHashtags,
-      platform: isDouyin ? "douyin" : "tiktok",
+    // 4. Nếu các cổng tự động đều bị giới hạn bởi hệ thống bảo vệ của Douyin:
+    // Trả về thông báo hướng dẫn rõ ràng kèm chế độ chọn file video trực tiếp
+    return res.status(422).json({
+      error: "Hệ thống bảo mật của Douyin hiện đang chặn kết nối tự động.",
+      tip: "Bạn có thể: 1) Tải video Douyin về máy rồi bấm 'Tải lên video từ máy' ở bên dưới để dùng full tính năng Lồng tiếng & Dịch phụ đề, hoặc 2) Thử link TikTok khác.",
     });
   } catch (err) {
-    console.error("[douyin.js] Error:", err);
+    console.error("[douyin.js] Server Error:", err);
     return res.status(500).json({
-      error: "Lỗi máy chủ khi xử lý video.",
+      error: "Lỗi máy chủ khi kết nối đến dịch vụ video.",
       detail: err.message,
     });
   }
 }
 
-/**
- * Tự động gợi ý hashtag dựa trên nội dung video
- */
-function generateHashtags(title, data) {
-  const hashtags = new Set();
-
-  // Hashtag mặc định cho Reels
-  hashtags.add("viral");
-  hashtags.add("reels");
-  hashtags.add("fyp");
-  hashtags.add("trending");
-
-  // Trích xuất hashtag từ tiêu đề gốc
+function generateHashtags(title = "") {
+  const hashtags = new Set(["reels", "viral", "trending", "fyp", "xuhuong"]);
   const existingTags = title.match(/#[\w\u00C0-\u024F\u4e00-\u9fff]+/g) || [];
   existingTags.forEach((tag) => {
     const clean = tag.replace("#", "").toLowerCase();
-    if (clean.length > 1 && clean.length < 30) {
-      hashtags.add(clean);
-    }
+    if (clean.length > 1 && clean.length < 30) hashtags.add(clean);
   });
 
-  // Phân tích nội dung để gợi ý thêm
-  const lowerTitle = (title || "").toLowerCase();
-
-  const categoryMap = {
-    // Làm đẹp
-    "化妆|美妆|妆容|makeup|skincare|护肤|面膜|口红|眼影": ["makeup", "beauty", "lamdep", "trangdiem"],
-    // Ẩm thực
-    "美食|做饭|cooking|recipe|烹饪|food|吃|菜|饭|面|汤": ["food", "cooking", "amthuc", "monngon"],
-    // Thời trang
-    "穿搭|时尚|fashion|outfit|衣服|裙|dress|style": ["fashion", "thoitrang", "ootd", "style"],
-    // Hài hước
-    "搞笑|funny|humor|笑|段子|joke": ["funny", "haihuoc", "comedy"],
-    // Nhảy / Dance
-    "舞蹈|dance|dancing|choreography|跳舞": ["dance", "nhay", "dancer"],
-    // Fitness / Gym
-    "健身|gym|workout|exercise|运动|fit": ["fitness", "gym", "workout", "tapgym"],
-    // Pet / Thú cưng
-    "宠物|pet|cat|dog|猫|狗|动物": ["pet", "thucung", "cute"],
-    // Du lịch
-    "旅行|travel|旅游|景点|trip": ["travel", "dulich", "explore"],
-    // Âm nhạc
-    "音乐|music|唱歌|sing|song": ["music", "amnhac"],
-    // DIY / Mẹo vặt
-    "手工|diy|craft|hack|life|mẹo": ["diy", "meovat", "lifehack"],
-  };
-
-  for (const [patterns, tags] of Object.entries(categoryMap)) {
-    const regex = new RegExp(patterns, "i");
-    if (regex.test(lowerTitle)) {
-      tags.forEach((t) => hashtags.add(t));
-    }
+  const lower = title.toLowerCase();
+  if (/makeup|beauty|làm đẹp|trang điểm|skincare|mỹ phẩm/.test(lower)) {
+    ["makeup", "beauty", "lamdep", "goclamdep"].forEach((t) => hashtags.add(t));
+  }
+  if (/ẩm thực|nấu ăn|món ngon|food|cooking|ăn uống/.test(lower)) {
+    ["food", "monngon", "amthuc", "cooking"].forEach((t) => hashtags.add(t));
+  }
+  if (/thời trang|outfit|quần áo|phối đồ|fashion/.test(lower)) {
+    ["fashion", "thoitrang", "outfit", "ootd"].forEach((t) => hashtags.add(t));
+  }
+  if (/hài|hài hước|vui|cười|funny|troll/.test(lower)) {
+    ["haihuoc", "funny", "giaitri", "cuoivobung"].forEach((t) => hashtags.add(t));
+  }
+  if (/mẹo|tips|hack|review|chia sẻ|hướng dẫn/.test(lower)) {
+    ["meovat", "review", "chiase", "huongdan"].forEach((t) => hashtags.add(t));
   }
 
-  // Giới hạn 15 hashtag
   return Array.from(hashtags).slice(0, 15);
 }

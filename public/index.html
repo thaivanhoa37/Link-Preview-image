@@ -274,11 +274,11 @@
       </div>
 
       <!-- ══════════════════════════════════════════════════════════════ -->
-      <!-- CHE DO DOUYIN → REELS                                        -->
+      <!-- CHE DO DOUYIN → REELS: DICH PHU DE & LONG TIENG AI          -->
       <!-- ══════════════════════════════════════════════════════════════ -->
       <div id="douyinModeSection" class="dy-section space-y-4">
 
-        <!-- BUOC 1: DAN LINK DOUYIN -->
+        <!-- BUOC 1: CHON VIDEO (LINK HOAC TAI FILE) -->
         <div class="step-card active fade-up" id="dyCard1" style="animation-delay:.05s">
           <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[.08]">
             <div class="flex items-center gap-3">
@@ -286,27 +286,41 @@
                 1
               </div>
               <div>
-                <div class="text-base font-bold text-white">Dan link Douyin / TikTok</div>
-                <div class="text-xs text-slate-400">Dan link video &rarr; tu dong tai ve khong watermark</div>
+                <div class="text-base font-bold text-white">Chon Video Douyin / TikTok / Video tu may</div>
+                <div class="text-xs text-slate-400">Dan link hoac tai file video MP4 de bat dau dich &amp; long tieng</div>
               </div>
             </div>
-            <span class="tag" style="background:rgba(236,72,153,.18);color:#f472b6;border:1px solid rgba(236,72,153,.3)">&#127916; Video</span>
+            <span class="tag" style="background:rgba(236,72,153,.18);color:#f472b6;border:1px solid rgba(236,72,153,.3)">&#127916; Studio Video</span>
           </div>
 
           <div class="space-y-3">
             <div>
-              <label for="dyUrlInput" class="block text-xs font-semibold text-slate-300 mb-1.5">&#128279; Link video Douyin / TikTok <span class="text-rose-400">*</span></label>
+              <label for="dyUrlInput" class="block text-xs font-semibold text-slate-300 mb-1.5">&#128279; Dan link Douyin / TikTok hoac link file video</label>
               <div class="flex gap-2">
                 <input id="dyUrlInput" type="url" class="inp flex-1" placeholder="https://v.douyin.com/xxx hoac https://www.tiktok.com/@user/video/xxx" autocomplete="off" spellcheck="false" />
                 <button id="dyFetchBtn" class="btn-pink" style="width:auto;padding:.75rem 1.5rem;white-space:nowrap" onclick="doFetchDouyin()">
                   <div class="btn-spinner" id="dyFetchSpinner"></div>
                   <span class="btn-lbl flex items-center gap-1.5">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Tai Video
+                    Lay Video
                   </span>
                 </button>
               </div>
-              <div class="mt-1.5 text-[.7rem] text-slate-500">Ho tro: Douyin (抖音), TikTok &mdash; Tu dong tai video khong co watermark.</div>
+            </div>
+
+            <!-- HOAC TAI FILE TU MAY -->
+            <div class="flex items-center gap-3 my-2">
+              <div class="h-px bg-white/10 flex-1"></div>
+              <span class="text-[.7rem] text-slate-500 font-semibold uppercase tracking-wider">Hoac tai file tu may</span>
+              <div class="h-px bg-white/10 flex-1"></div>
+            </div>
+
+            <div class="flex justify-center">
+              <input type="file" id="dyLocalFileInput" accept="video/mp4,video/webm,video/quicktime" class="hidden" onchange="handleLocalVideoFile(event)" />
+              <button type="button" onclick="$('dyLocalFileInput').click()" class="btn-ghost w-full justify-center py-2.5 text-xs font-bold border-dashed border-violet-500/40 text-violet-300 hover:bg-violet-500/10">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                &#128194; Chon file video tu may tinh (MP4 / WebM)
+              </button>
             </div>
 
             <!-- PROGRESS -->
@@ -315,131 +329,218 @@
               <div class="text-xs text-slate-400 mt-1.5 text-center" id="dyFetchStatus">Dang ket noi...</div>
             </div>
 
-            <!-- VIDEO PREVIEW -->
-            <div id="dyVideoPreview" class="hidden">
-              <div class="dy-video-preview">
-                <video id="dyVideoPlayer" controls playsinline preload="metadata"></video>
+            <!-- VIDEO PREVIEW + CANVAS -->
+            <div id="dyVideoPreview" class="hidden space-y-3">
+              <div class="relative rounded-2xl overflow-hidden bg-black border border-white/10 flex justify-center items-center" style="max-height:460px">
+                <!-- Video player nguon -->
+                <video id="dyVideoPlayer" controls playsinline preload="auto" class="w-full max-h-[460px] object-contain"></video>
+                <!-- Canvas de render phu de & export -->
+                <canvas id="dyExportCanvas" class="hidden absolute inset-0 w-full h-full pointer-events-none"></canvas>
+                <!-- Subtitle Overlay Real-time -->
+                <div id="dyLiveSubtitle" class="absolute bottom-12 left-4 right-4 text-center pointer-events-none transition-all duration-150" style="display:none">
+                  <span class="inline-block px-3 py-1.5 rounded-lg bg-black/75 text-yellow-300 font-extrabold text-base sm:text-lg tracking-wide border border-yellow-400/40 shadow-2xl backdrop-blur-sm" style="text-shadow: 0 2px 4px rgba(0,0,0,0.9)">
+                    Phu de Reels se hien o day
+                  </span>
+                </div>
               </div>
-              <div class="flex items-center gap-2 mt-2">
-                <span class="tag tag-v" id="dyPlatformTag">Douyin</span>
-                <span class="tag tag-g" id="dyDurationTag">0s</span>
-                <span id="dyAuthorTag" class="text-xs text-slate-400"></span>
+
+              <div class="flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="tag tag-v" id="dyPlatformTag">Douyin</span>
+                  <span class="tag tag-g" id="dyDurationTag">0s</span>
+                  <span id="dyAuthorTag" class="text-slate-400"></span>
+                </div>
+                <div class="text-[.72rem] text-emerald-400 font-semibold flex items-center gap-1">
+                  &#10004; San sang dich &amp; long tieng
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- BUOC 2: CHINH SUA NOI DUNG -->
+        <!-- BUOC 2: DICH THUAT & KICH BAN TIENG VIET -->
         <div class="step-card fade-up" id="dyCard2" style="animation-delay:.1s">
-          <div class="flex items-center gap-3 mb-4 pb-3 border-b border-white/[.08]">
-            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:800;box-shadow:0 4px 16px rgba(168,85,247,.4)">
-              2
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[.08]">
+            <div class="flex items-center gap-3">
+              <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:800;box-shadow:0 4px 16px rgba(59,130,246,.4)">
+                2
+              </div>
+              <div>
+                <div class="text-base font-bold text-white">Dich thong minh &amp; Kich ban loi thoai</div>
+                <div class="text-xs text-slate-400">Tu dong dich tu tieng Trung/Anh sang tieng Viet chuan xac</div>
+              </div>
             </div>
-            <div>
-              <div class="text-base font-bold text-white">Chinh sua noi dung Reels</div>
-              <div class="text-xs text-slate-400">Tieu de + hashtag + link tiep thi lien ket</div>
-            </div>
+            <button type="button" class="btn-ghost text-xs font-bold text-blue-400" onclick="doTranslateScript()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              &#127760; Dich sang Tieng Viet
+            </button>
           </div>
 
           <div class="space-y-4">
-            <!-- TIEU DE -->
+            <!-- NOI DUNG GOC -->
             <div>
-              <label for="dyTitleInput" class="block text-xs font-semibold text-slate-300 mb-1.5">&#128221; Tieu de Reels</label>
-              <textarea id="dyTitleInput" rows="2" class="inp resize-none" placeholder="Nhap tieu de video Reels..." maxlength="500" oninput="dyUpdateCaption()"></textarea>
-              <div class="text-right mt-1"><span id="dyTitleCount" class="text-[.68rem] text-slate-600">0/500</span></div>
+              <label for="dyOriginalText" class="block text-xs font-semibold text-slate-400 mb-1.5">&#128196; Van ban / Tieu de goc cua video (Tieng Trung, Tieng Anh...)</label>
+              <textarea id="dyOriginalText" rows="2" class="inp resize-none text-slate-300" placeholder="Dan hoac nhap van ban goc can dich..."></textarea>
             </div>
 
-            <!-- HASHTAG -->
+            <!-- KICH BAN TIENG VIET -->
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-2">&#127991;&#65039; Hashtag <span class="text-slate-500 font-normal">(click de them/xoa)</span></label>
-              <div id="dyHashtagChips" class="dy-hashtag-chips">
-                <!-- chips se duoc render bang JS -->
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="dyScriptInput" class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  &#9997;&#65039; Kich ban loi thoai / Phu de Tieng Viet (Se dung de long tieng) <span class="text-rose-400">*</span>
+                </label>
+                <span class="text-[.7rem] text-slate-500" id="dyScriptCount">0 chu</span>
               </div>
-              <div class="flex gap-2 mt-2">
-                <input id="dyNewHashtag" type="text" class="inp" style="flex:1;padding:.5rem .8rem;font-size:.82rem" placeholder="Nhap hashtag moi..." onkeydown="if(event.key==='Enter'){event.preventDefault();dyAddCustomHashtag();}" />
-                <button type="button" class="btn-ghost" style="padding:.5rem .8rem;font-size:.78rem;font-weight:700" onclick="dyAddCustomHashtag()">+ Them</button>
-              </div>
-            </div>
-
-            <!-- AFFILIATE LINK -->
-            <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:.9rem;margin-top:.4rem">
-              <label for="dyAffiliateLink" class="block text-xs font-semibold text-pink-400 mb-1.5">&#128279; Link tiep thi lien ket (Affiliate Link) <span class="text-slate-500 font-normal">(khong bat buoc)</span></label>
-              <input id="dyAffiliateLink" type="url" class="inp" placeholder="https://shope.ee/xxx hoac https://s.lazada.vn/..." autocomplete="off" spellcheck="false" oninput="dyUpdateCaption()" />
-              <div class="flex flex-wrap gap-1.5 mt-2">
-                <span class="text-[.7rem] text-slate-400 w-full mb-0.5 font-semibold">&#128073; Chon nhanh san:</span>
-                <button type="button" onclick="$('dyAffiliateLink').focus()" style="padding:.3rem .65rem;border-radius:6px;background:rgba(238,77,45,.15);border:1px solid rgba(238,77,45,.4);font-size:.72rem;font-weight:700;color:#ff7355;cursor:pointer;font-family:inherit">&#128722; Shopee</button>
-                <button type="button" onclick="$('dyAffiliateLink').focus()" style="padding:.3rem .65rem;border-radius:6px;background:rgba(6,87,255,.12);border:1px solid rgba(6,87,255,.3);font-size:.72rem;font-weight:700;color:#60a5fa;cursor:pointer;font-family:inherit">Lazada</button>
-                <button type="button" onclick="$('dyAffiliateLink').focus()" style="padding:.3rem .65rem;border-radius:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);font-size:.72rem;font-weight:700;color:#e2e8f0;cursor:pointer;font-family:inherit">TikTok Shop</button>
-              </div>
-            </div>
-
-            <!-- CTA TEXT -->
-            <div>
-              <label for="dyCTAInput" class="block text-xs font-semibold text-purple-400 mb-1.5">&#9999;&#65039; Noi dung CTA di kem link <span class="text-slate-500 font-normal">(mac dinh: "&#128722; Mua ngay:")</span></label>
-              <input id="dyCTAInput" type="text" class="inp" value="&#128722; Mua ngay:" placeholder="VD: &#128073; Link san pham: hoac &#128293; Xem them:" oninput="dyUpdateCaption()" />
-              <div class="flex flex-wrap gap-1.5 mt-2">
-                <button type="button" onclick="$('dyCTAInput').value='&#128722; Mua ngay:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#128722; Mua ngay:</button>
-                <button type="button" onclick="$('dyCTAInput').value='&#128073; Link san pham:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#128073; Link san pham:</button>
-                <button type="button" onclick="$('dyCTAInput').value='&#128293; Xem them:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#128293; Xem them:</button>
-                <button type="button" onclick="$('dyCTAInput').value='&#127381; Uu dai:';dyUpdateCaption()" style="padding:.25rem .5rem;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.7rem;color:#94a3b8;cursor:pointer;font-family:inherit">&#127381; Uu dai:</button>
+              <textarea id="dyScriptInput" rows="4" class="inp resize-none font-medium text-white border-emerald-500/40 focus:border-emerald-400" placeholder="Nhap hoac chinh sua loi thoai tieng Viet de AI doc long tieng..." oninput="onScriptInputChange()"></textarea>
+              <div class="mt-1.5 text-[.72rem] text-slate-400 flex items-center gap-1.5">
+                <span class="text-emerald-400">&#128161;</span>
+                <span>Ban co the chia thanh cac cau ngan co dau cham/phay de giong doc ngat nghi tu nhien nhat.</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- XEM TRUOC CAPTION + HANH DONG -->
+        <!-- BUOC 3: LONG TIENG AI & TRON VIDEO -->
         <div class="step-card fade-up" id="dyCard3" style="animation-delay:.15s">
-          <div class="flex items-center gap-3 mb-4 pb-3 border-b border-white/[.08]">
-            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:800;box-shadow:0 4px 16px rgba(20,184,166,.4)">
-              3
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[.08]">
+            <div class="flex items-center gap-3">
+              <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:800;box-shadow:0 4px 16px rgba(16,185,129,.4)">
+                3
+              </div>
+              <div>
+                <div class="text-base font-bold text-white">Long tieng AI &amp; Chen phu de</div>
+                <div class="text-xs text-slate-400">Giong doc AI chuan Viet Nam &amp; Hieu ung phu de Reels</div>
+              </div>
             </div>
-            <div>
-              <div class="text-base font-bold text-white">Tai ve &amp; Copy caption</div>
-              <div class="text-xs text-slate-400">Tai video + copy caption &rarr; dang len Facebook Reels</div>
-            </div>
+            <span class="tag tag-g">&#128483;&#65039; Neural TTS</span>
           </div>
 
           <div class="space-y-4">
-            <!-- CAPTION PREVIEW -->
-            <div>
-              <label class="block text-xs font-semibold text-teal-400 mb-2">&#128065;&#65039; Xem truoc Caption (se paste vao Facebook):</label>
-              <div id="dyCaptionPreview" class="dy-caption-preview">
-                <span class="text-slate-500 italic">Caption se hien o day khi ban nhap thong tin...</span>
+            <!-- CAU HINH GIONG DOC AI -->
+            <div class="grid sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white/[.03] border border-white/10">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">&#128100; Chon giong doc AI:</label>
+                <select id="dyVoiceSelect" class="inp py-2 text-xs font-semibold">
+                  <option value="vi-VN-HoaiMyNeural">&#128105; Hoai My (Nu - Ngot ngao, truyen cam, chuan review)</option>
+                  <option value="vi-VN-NamMinhNeural">&#128104; Nam Minh (Nam - Tram am, cuon hut, tin tuc)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">&#9889; Toc do doc:</label>
+                <select id="dyRateSelect" class="inp py-2 text-xs font-semibold">
+                  <option value="-10%">Cham (0.9x - Ke chuyen, tam su)</option>
+                  <option value="+0%" selected>Chuan (1.0x - Tu nhien nhat)</option>
+                  <option value="+10%">Nhanh vua (1.1x - Review Reels/TikTok)</option>
+                  <option value="+20%">Nhanh (1.2x - Cuon hut, soi dong)</option>
+                </select>
               </div>
             </div>
 
-            <!-- BUTTONS -->
-            <div class="grid grid-cols-2 gap-3">
-              <button id="dyDownloadBtn" class="btn-teal" onclick="dyDownloadVideo()" disabled>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                &#11015;&#65039; Tai Video
+            <!-- NUT TAO & NGHE THU GIONG DOC -->
+            <div class="flex gap-2">
+              <button id="dyGenAudioBtn" type="button" class="btn-pink flex-1" onclick="doGenerateVoice()">
+                <div class="btn-spinner" id="dyGenAudioSpinner"></div>
+                <span class="btn-lbl flex items-center gap-1.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  &#128266; Tao &amp; Nghe thu Giong doc AI
+                </span>
               </button>
-              <button id="dyCopyBtn" class="btn-pink" onclick="dyCopyCaption()" disabled>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                &#128203; Copy Caption
-              </button>
+
+              <audio id="dyVoicePlayer" class="hidden"></audio>
             </div>
 
-            <!-- HUONG DAN NHANH -->
-            <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
-              <div class="text-xs font-bold text-purple-300 mb-1.5">&#128161; Huong dan dang Reels len trang ca nhan:</div>
-              <div class="space-y-1.5 text-xs text-slate-400">
-                <div class="flex gap-2 items-start"><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0">1</div><span>Bam <strong class="text-white">"Tai Video"</strong> &rarr; luu file video ve may.</span></div>
-                <div class="flex gap-2 items-start"><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0">2</div><span>Bam <strong class="text-white">"Copy Caption"</strong> &rarr; caption vao clipboard.</span></div>
-                <div class="flex gap-2 items-start"><div style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0">3</div><span>Mo <strong class="text-white">Facebook</strong> &rarr; Tao Reels &rarr; Chon video &rarr; <strong class="text-white">Paste caption</strong> &rarr; Dang!</span></div>
+            <!-- TUY CHON TRON VIDEO & PHU DE -->
+            <div class="space-y-2 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+              <div class="text-xs font-bold text-violet-300 mb-2">&#127916; Tuy chon xuat Video Reels:</div>
+              <div class="grid sm:grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="dyOptDubbing" checked class="rounded accent-violet-500 w-4 h-4" />
+                  <span>Long tieng AI (Giam nhac nen goc xuong 15%)</span>
+                </label>
+                <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="dyOptSubtitles" checked class="rounded accent-violet-500 w-4 h-4" />
+                  <span>Chen phu de Tieng Viet chay chu (Chu vang/vien den)</span>
+                </label>
               </div>
             </div>
 
-            <!-- RESET -->
-            <button class="btn-ghost w-full justify-center text-xs" onclick="dyReset()" style="font-family:inherit">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Lam moi — Tai video khac
-            </button>
+            <!-- CAPTION & HASHTAG & AFFILIATE -->
+            <div class="space-y-3 pt-2 border-t border-white/[.08]">
+              <div>
+                <label for="dyTitleInput" class="block text-xs font-semibold text-slate-300 mb-1.5">&#128221; Tieu de bai dang Reels</label>
+                <input id="dyTitleInput" type="text" class="inp" placeholder="Nhap tieu de Reels..." oninput="dyUpdateCaption()" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-2">&#127991;&#65039; Hashtag <span class="text-slate-500 font-normal">(click de them/xoa)</span></label>
+                <div id="dyHashtagChips" class="dy-hashtag-chips"></div>
+                <div class="flex gap-2 mt-2">
+                  <input id="dyNewHashtag" type="text" class="inp" style="flex:1;padding:.5rem .8rem;font-size:.82rem" placeholder="Nhap hashtag moi..." onkeydown="if(event.key==='Enter'){event.preventDefault();dyAddCustomHashtag();}" />
+                  <button type="button" class="btn-ghost" style="padding:.5rem .8rem;font-size:.78rem;font-weight:700" onclick="dyAddCustomHashtag()">+ Them</button>
+                </div>
+              </div>
+
+              <div>
+                <label for="dyAffiliateLink" class="block text-xs font-semibold text-pink-400 mb-1.5">&#128279; Link tiep thi lien ket (Affiliate Link) <span class="text-slate-500 font-normal">(khong bat buoc)</span></label>
+                <input id="dyAffiliateLink" type="url" class="inp" placeholder="https://shope.ee/xxx hoac https://s.lazada.vn/..." autocomplete="off" spellcheck="false" oninput="dyUpdateCaption()" />
+              </div>
+
+              <div>
+                <label for="dyCTAInput" class="block text-xs font-semibold text-purple-400 mb-1.5">&#9999;&#65039; Noi dung CTA <span class="text-slate-500 font-normal">(mac dinh: "&#128722; Mua ngay:")</span></label>
+                <input id="dyCTAInput" type="text" class="inp" value="&#128722; Mua ngay:" oninput="dyUpdateCaption()" />
+              </div>
+            </div>
+
+            <!-- XUAT VIDEO & COPY CAPTION -->
+            <div class="space-y-3 pt-3 border-t border-white/[.08]">
+              <div>
+                <label class="block text-xs font-semibold text-teal-400 mb-1.5">&#128065;&#65039; Xem truoc Caption Facebook:</label>
+                <div id="dyCaptionPreview" class="dy-caption-preview"></div>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-3">
+                <!-- NUT EXPORT VIDEO -->
+                <button id="dyExportVideoBtn" class="btn-teal py-3" onclick="doExportDubbedVideo()" disabled>
+                  <div class="btn-spinner" id="dyExportSpinner"></div>
+                  <span class="btn-lbl flex items-center gap-1.5 text-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                    &#9889; Xuat Video Da Long Tieng
+                  </span>
+                </button>
+
+                <!-- NUT COPY CAPTION -->
+                <button id="dyCopyBtn" class="btn-pink py-3" onclick="dyCopyCaption()" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  &#128203; Copy Caption Reels
+                </button>
+              </div>
+
+              <!-- DOWNLOAD LINK KHI XUAT XONG -->
+              <div id="dyExportResult" class="hidden p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
+                <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                  &#10004; Video da xuat thanh cong!
+                </div>
+                <div class="text-xs text-slate-300">
+                  Video da duoc hoa am giong doc tieng Viet &amp; chen phu de chuan Facebook Reels.
+                </div>
+                <a id="dyDownloadReadyBtn" href="#" download="reels_vietnamese.webm" class="btn-main text-xs font-bold py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600">
+                  &#11015;&#65039; Tai Video Ve May Ngay
+                </a>
+              </div>
+
+              <!-- RESET -->
+              <button class="btn-ghost w-full justify-center text-xs mt-2" onclick="dyReset()" style="font-family:inherit">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Lam moi — Xu ly video khac
+              </button>
+            </div>
           </div>
         </div>
 
       </div>
       <!-- END DOUYIN MODE -->
+
 
 
       <div class="step-card active fade-up hidden" id="card1" style="animation-delay:.05s">
@@ -1498,12 +1599,16 @@ function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('
 syncText(); syncDomain(); renderHistory(); setUState('idle'); switchToolMode('quick');
 
 /* ================================================================ */
-/* =================== DOUYIN → REELS MODULE ====================== */
+/* =================== DOUYIN → REELS STUDIO MODULE =============== */
 /* ================================================================ */
 
-let dyVideoData = null;   // luu du lieu video da fetch
-let dyHashtags  = [];     // mang hashtag hien tai
-let dyActiveHashtags = new Set(); // set cac hashtag dang bat
+let dyVideoData = null;       // Du lieu video da nap (url, blob, title,...)
+let dyHashtags  = [];         // Mang hashtag
+let dyActiveHashtags = new Set();
+let dyVoiceAudioUrl = '';     // URL am thanh long tieng AI tao ra
+let dySubtitles = [];         // Mang timing phu de [{ text, startSeconds, durationSeconds, endSeconds }]
+let dyAudioBuffer = null;     // AudioBuffer cho Web Audio Mixer
+let dyIsExporting = false;
 
 // Restore CTA tu localStorage
 (function(){
@@ -1511,23 +1616,22 @@ let dyActiveHashtags = new Set(); // set cac hashtag dang bat
   if (savedCTA && $('dyCTAInput')) $('dyCTAInput').value = savedCTA;
 })();
 
-/* ---- FETCH VIDEO ---- */
+/* ---- 1. NAP VIDEO (TU LINK HOAC FILE MAY) ---- */
 async function doFetchDouyin() {
   const url = ($('dyUrlInput')?.value || '').trim();
-  if (!url) { toast('Vui long dan link video Douyin / TikTok!'); return; }
+  if (!url) { toast('Vui long dan link video hoac chon file tu may!'); return; }
 
   const btn = $('dyFetchBtn');
   btn.disabled = true; btn.classList.add('is-loading');
   $('dyFetchProgress').classList.remove('hidden');
   $('dyVideoPreview').classList.add('hidden');
 
-  // Fake progress
   let prog = 0;
   const progTimer = setInterval(() => {
     prog += Math.random() * 15;
     if (prog > 85) { clearInterval(progTimer); prog = 85; }
     $('dyProgressBar').style.width = prog + '%';
-    $('dyFetchStatus').textContent = prog < 30 ? 'Dang ket noi den Douyin...' : prog < 60 ? 'Dang phan tich video...' : 'Dang lay link khong watermark...';
+    $('dyFetchStatus').textContent = prog < 30 ? 'Dang ket noi video...' : prog < 60 ? 'Dang lay link video khong watermark...' : 'Sap hoan tat...';
   }, 250);
 
   try {
@@ -1540,66 +1644,326 @@ async function doFetchDouyin() {
     clearInterval(progTimer);
 
     if (!res.ok || !data.success) {
-      toast(data.error || 'Khong the tai video. Thu lai!');
       $('dyFetchProgress').classList.add('hidden');
+      toast(data.error || 'Khong the lay video tu link nay.');
+      if (data.tip) {
+        alert(data.error + '\n\n💡 Gợi ý: ' + data.tip);
+      }
       return;
     }
 
     $('dyProgressBar').style.width = '100%';
     $('dyFetchStatus').textContent = 'Thanh cong!';
-
-    // Luu data
-    dyVideoData = data;
-
-    // Hien thi video preview
-    setTimeout(() => {
-      $('dyFetchProgress').classList.add('hidden');
-      $('dyVideoPreview').classList.remove('hidden');
-
-      if (data.videoUrl) {
-        $('dyVideoPlayer').src = data.videoUrl;
-      }
-
-      $('dyPlatformTag').textContent = data.platform === 'douyin' ? 'Douyin' : 'TikTok';
-      $('dyDurationTag').textContent = data.duration ? data.duration + 's' : 'N/A';
-      $('dyAuthorTag').textContent = data.author ? '@ ' + data.author : '';
-
-      // Dien tieu de goc
-      if (data.title && $('dyTitleInput')) {
-        // Loai bo hashtag khoi tieu de goc
-        let cleanTitle = data.title.replace(/#[\w\u00C0-\u024F\u4e00-\u9fff]+/g, '').trim();
-        $('dyTitleInput').value = cleanTitle;
-        $('dyTitleCount').textContent = cleanTitle.length + '/500';
-      }
-
-      // Render hashtag
-      dyHashtags = data.suggestedHashtags || ['viral','reels','fyp','trending'];
-      dyActiveHashtags = new Set(dyHashtags);
-      dyRenderHashtags();
-
-      // Enable buttons
-      $('dyDownloadBtn').disabled = false;
-      $('dyCopyBtn').disabled = false;
-
-      // Activate cards
-      $('dyCard2').classList.add('active');
-      $('dyCard3').classList.add('active');
-
-      dyUpdateCaption();
-      toast('Da lay video thanh cong!');
-    }, 500);
-
+    dyLoadVideoSource(data);
   } catch (err) {
     clearInterval(progTimer);
     console.error('[Douyin]', err);
-    toast('Loi ket noi. Vui long thu lai!');
     $('dyFetchProgress').classList.add('hidden');
+    toast('Loi ket noi server. Ban co the chon file video truc tiep tu may!');
   } finally {
     btn.disabled = false; btn.classList.remove('is-loading');
   }
 }
 
-/* ---- HASHTAG MANAGEMENT ---- */
+// Chon file video tu may
+function handleLocalVideoFile(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const localUrl = URL.createObjectURL(file);
+  const data = {
+    videoUrl: localUrl,
+    title: file.name.replace(/\.[^/.]+$/, ""),
+    author: "Local File",
+    duration: 0,
+    suggestedHashtags: ["reels", "viral", "xuhuong", "trending"],
+    platform: "local"
+  };
+  dyLoadVideoSource(data);
+  toast('Da tai file video tu may thanh cong!');
+  event.target.value = '';
+}
+
+function dyLoadVideoSource(data) {
+  dyVideoData = data;
+  $('dyFetchProgress').classList.add('hidden');
+  $('dyVideoPreview').classList.remove('hidden');
+
+  const player = $('dyVideoPlayer');
+  player.crossOrigin = 'anonymous';
+  player.src = data.videoUrl;
+  player.load();
+
+  $('dyPlatformTag').textContent = data.platform === 'douyin' ? 'Douyin' : data.platform === 'tiktok' ? 'TikTok' : 'Video';
+  $('dyDurationTag').textContent = data.duration ? data.duration + 's' : 'MP4';
+  $('dyAuthorTag').textContent = data.author ? '@' + data.author : '';
+
+  // Dien van ban goc
+  if (data.title) {
+    $('dyOriginalText').value = data.title;
+    let cleanTitle = data.title.replace(/#[\w\u00C0-\u024F\u4e00-\u9fff]+/g, '').trim();
+    $('dyTitleInput').value = cleanTitle;
+    // Tu dong dich neu co text goc
+    doTranslateScript();
+  }
+
+  // Render hashtag
+  dyHashtags = data.suggestedHashtags || ['viral','reels','fyp','trending'];
+  dyActiveHashtags = new Set(dyHashtags);
+  dyRenderHashtags();
+
+  $('dyCard2').classList.add('active');
+  $('dyCard3').classList.add('active');
+  $('dyCopyBtn').disabled = false;
+  dyUpdateCaption();
+}
+
+/* ---- 2. DICH THUAT KICH BAN SANG TIENG VIET ---- */
+async function doTranslateScript() {
+  const text = ($('dyOriginalText')?.value || '').trim();
+  if (!text) {
+    toast('Chua co van ban goc de dich.');
+    return;
+  }
+
+  toast('Dang dich sang Tieng Viet...');
+  try {
+    const res = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, targetLang: 'vi' })
+    });
+    const data = await res.json();
+    if (res.ok && data.translatedText) {
+      $('dyScriptInput').value = data.translatedText;
+      onScriptInputChange();
+      toast('Dich sang Tieng Viet thanh cong!');
+    } else {
+      toast('Khong the dich tu dong. Ban co the tu nhap kich ban tieng Viet.');
+    }
+  } catch (err) {
+    console.error('[Translate Error]', err);
+    toast('Loi khi dich. Ban co the tu nhap kich ban tieng Viet.');
+  }
+}
+
+function onScriptInputChange() {
+  const val = ($('dyScriptInput')?.value || '').trim();
+  const wordCount = val ? val.split(/\s+/).length : 0;
+  $('dyScriptCount').textContent = wordCount + ' chu (' + val.length + ' ky tu)';
+}
+
+/* ---- 3. LONG TIENG AI & SUBTITLES ---- */
+async function doGenerateVoice() {
+  const scriptText = ($('dyScriptInput')?.value || '').trim();
+  if (!scriptText) {
+    toast('Vui long nhap loi thoai tieng Viet can long tieng!');
+    $('dyScriptInput').focus();
+    return;
+  }
+
+  const voice = $('dyVoiceSelect').value;
+  const rate  = $('dyRateSelect').value;
+
+  const btn = $('dyGenAudioBtn');
+  btn.disabled = true; btn.classList.add('is-loading');
+
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: scriptText, voice, rate })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      toast(data.error || 'Loi khi tao giong doc AI.');
+      return;
+    }
+
+    dyVoiceAudioUrl = data.audioData;
+    dySubtitles     = data.subtitles || [];
+
+    // Setup player
+    const voicePlayer = $('dyVoicePlayer');
+    voicePlayer.src = data.audioData;
+    voicePlayer.load();
+    voicePlayer.play();
+
+    $('dyExportVideoBtn').disabled = false;
+    setupLiveSubtitleSync();
+
+    toast('Da tao giong doc AI thanh cong! Dang phat thu am thanh...');
+  } catch (err) {
+    console.error('[TTS Error]', err);
+    toast('Loi ket noi khi tao giong doc.');
+  } finally {
+    btn.disabled = false; btn.classList.remove('is-loading');
+  }
+}
+
+// Dong bo phu de theo thoi gian video
+function setupLiveSubtitleSync() {
+  const player = $('dyVideoPlayer');
+  const liveSub = $('dyLiveSubtitle');
+  if (!player || !liveSub) return;
+
+  player.ontimeupdate = () => {
+    if (!$('dyOptSubtitles').checked || !dySubtitles.length) {
+      liveSub.style.display = 'none';
+      return;
+    }
+    const curTime = player.currentTime;
+    const currentSub = dySubtitles.find(s => curTime >= s.startSeconds && curTime <= (s.endSeconds + 0.35));
+
+    if (currentSub && currentSub.text) {
+      liveSub.style.display = 'block';
+      liveSub.querySelector('span').textContent = currentSub.text;
+    } else {
+      liveSub.style.display = 'none';
+    }
+  };
+}
+
+/* ---- 4. XUAT VIDEO MOI (LONG TIENG & PHU DE) ---- */
+async function doExportDubbedVideo() {
+  const player = $('dyVideoPlayer');
+  if (!player.src) { toast('Chua co video de xuat!'); return; }
+  if (!dyVoiceAudioUrl) { toast('Vui long bam "Tao & Nghe thu Giong doc AI" truoc!'); return; }
+
+  const btn = $('dyExportVideoBtn');
+  btn.disabled = true; btn.classList.add('is-loading');
+  $('dyExportResult').classList.add('hidden');
+  toast('Dang hoa am va render video Reels moi...');
+
+  try {
+    // 1. Audio Context Mixer
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const dest = audioCtx.createMediaStreamDestination();
+
+    // Nguon voice AI
+    const voiceRes = await fetch(dyVoiceAudioUrl);
+    const voiceArrayBuf = await voiceRes.arrayBuffer();
+    const voiceAudioBuf = await audioCtx.decodeAudioData(voiceArrayBuf);
+
+    // Source node cho voice AI
+    const voiceSource = audioCtx.createBufferSource();
+    voiceSource.buffer = voiceAudioBuf;
+    const voiceGain = audioCtx.createGain();
+    voiceGain.gain.value = 1.0; // 100% am luong giong doc AI
+    voiceSource.connect(voiceGain);
+    voiceGain.connect(dest);
+
+    // Canvas render video + subtitle
+    const canvas = $('dyExportCanvas');
+    canvas.classList.remove('hidden');
+    const vw = player.videoWidth || 720;
+    const vh = player.videoHeight || 1280;
+    canvas.width = vw;
+    canvas.height = vh;
+    const ctx = canvas.getContext('2d');
+
+    // Stream tu canvas
+    const canvasStream = canvas.captureStream(30);
+
+    // Ket hop canvas stream + mixed audio stream
+    const combinedStream = new MediaStream([
+      ...canvasStream.getVideoTracks(),
+      ...dest.stream.getAudioTracks()
+    ]);
+
+    // MediaRecorder
+    let mimeType = 'video/webm;codecs=vp9,opus';
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+      mimeType = 'video/webm';
+    }
+    const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 4000000 });
+    const chunks = [];
+
+    recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const exportUrl = URL.createObjectURL(blob);
+      canvas.classList.add('hidden');
+      player.pause();
+
+      const dlBtn = $('dyDownloadReadyBtn');
+      dlBtn.href = exportUrl;
+      dlBtn.download = 'reels_long_tieng_' + Date.now() + '.webm';
+      $('dyExportResult').classList.remove('hidden');
+      $('dyExportResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      toast('Xuat video thanh cong! Nhan nut de tai ve.');
+      btn.disabled = false; btn.classList.remove('is-loading');
+    };
+
+    // Chay recording
+    recorder.start();
+    voiceSource.start(0);
+    player.currentTime = 0;
+    player.muted = !$('dyOptDubbing').checked;
+    await player.play();
+
+    const drawFrame = () => {
+      if (player.paused || player.ended) return;
+
+      // Ve khung video
+      ctx.drawImage(player, 0, 0, vw, vh);
+
+      // Ve phu de neu duoc bat
+      if ($('dyOptSubtitles').checked && dySubtitles.length) {
+        const curTime = player.currentTime;
+        const currentSub = dySubtitles.find(s => curTime >= s.startSeconds && curTime <= (s.endSeconds + 0.35));
+
+        if (currentSub && currentSub.text) {
+          const fontSize = Math.max(28, Math.round(vw * 0.055));
+          ctx.font = `800 ${fontSize}px 'Be Vietnam Pro', system-ui, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          const textX = vw / 2;
+          const textY = vh * 0.82;
+          const padding = 16;
+          const metrics = ctx.measureText(currentSub.text);
+          const bgW = metrics.width + padding * 2;
+          const bgH = fontSize * 1.5;
+
+          // Nen phu de ban nguyet / bo goc
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+          ctx.beginPath();
+          ctx.roundRect(textX - bgW / 2, textY - bgH / 2, bgW, bgH, 12);
+          ctx.fill();
+
+          // Stroke den
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = Math.max(4, Math.round(fontSize * 0.12));
+          ctx.strokeText(currentSub.text, textX, textY);
+
+          // Chu vang noi bat Reels
+          ctx.fillStyle = '#fde047';
+          ctx.fillText(currentSub.text, textX, textY);
+        }
+      }
+
+      requestAnimationFrame(drawFrame);
+    };
+
+    drawFrame();
+
+    // Dung khi voice doc xong hoac het video
+    const recordDuration = Math.max(voiceAudioBuf.duration + 0.5, player.duration || 10);
+    setTimeout(() => {
+      if (recorder.state === 'recording') {
+        recorder.stop();
+      }
+    }, recordDuration * 1000);
+
+  } catch (err) {
+    console.error('[Export Error]', err);
+    toast('Loi khi xuat video: ' + err.message);
+    btn.disabled = false; btn.classList.remove('is-loading');
+  }
+}
+
+/* ---- 5. HASHTAGS & CAPTIONS ---- */
 function dyRenderHashtags() {
   const container = $('dyHashtagChips');
   if (!container) return;
@@ -1611,11 +1975,8 @@ function dyRenderHashtags() {
     chip.className = 'dy-chip ' + (isActive ? 'dy-chip-active' : 'dy-chip-inactive');
     chip.innerHTML = '#' + esc(tag) + (isActive ? ' <span class="dy-chip-remove" onclick="event.stopPropagation();dyRemoveHashtag(\'' + escJs(tag) + '\')">×</span>' : '');
     chip.onclick = () => {
-      if (isActive) {
-        dyActiveHashtags.delete(tag);
-      } else {
-        dyActiveHashtags.add(tag);
-      }
+      if (isActive) { dyActiveHashtags.delete(tag); }
+      else { dyActiveHashtags.add(tag); }
       dyRenderHashtags();
       dyUpdateCaption();
     };
@@ -1633,9 +1994,9 @@ function dyRemoveHashtag(tag) {
 function dyAddCustomHashtag() {
   const input = $('dyNewHashtag');
   let tag = (input?.value || '').trim().replace(/^#/, '').replace(/\s+/g, '_').toLowerCase();
-  if (!tag || tag.length < 1) { toast('Nhap hashtag truoc!'); return; }
-  if (tag.length > 30) { toast('Hashtag qua dai (toi da 30 ky tu)'); return; }
-  if (dyHashtags.includes(tag)) { toast('Hashtag nay da co roi!'); return; }
+  if (!tag) { toast('Nhap hashtag truoc!'); return; }
+  if (tag.length > 30) { toast('Hashtag qua dai'); return; }
+  if (dyHashtags.includes(tag)) { toast('Hashtag nay da ton tai!'); return; }
   dyHashtags.push(tag);
   dyActiveHashtags.add(tag);
   dyRenderHashtags();
@@ -1644,79 +2005,34 @@ function dyAddCustomHashtag() {
   toast('Da them #' + tag);
 }
 
-/* ---- CAPTION GENERATION ---- */
 function dyUpdateCaption() {
   const title     = ($('dyTitleInput')?.value || '').trim();
   const affiliate = ($('dyAffiliateLink')?.value || '').trim();
   const cta       = ($('dyCTAInput')?.value || '').trim();
 
-  // Update character count
-  $('dyTitleCount').textContent = title.length + '/500';
-
-  // Save CTA to localStorage
   if (cta) localStorage.setItem('dy_cta', cta);
 
-  // Build caption
   let caption = '';
+  if (title) caption += title;
+  if (affiliate) caption += '\n\n' + (cta ? cta + ' ' : '') + affiliate;
 
-  if (title) {
-    caption += title;
-  }
-
-  if (affiliate) {
-    caption += '\n\n' + (cta ? cta + ' ' : '') + affiliate;
-  }
-
-  // Add hashtags
   const activeTagsArr = Array.from(dyActiveHashtags);
   if (activeTagsArr.length > 0) {
     caption += '\n\n' + activeTagsArr.map(t => '#' + t).join(' ');
   }
 
-  // Update preview
   const preview = $('dyCaptionPreview');
   if (preview) {
-    if (caption.trim()) {
-      preview.textContent = caption;
-    } else {
-      preview.innerHTML = '<span class="text-slate-500 italic">Caption se hien o day khi ban nhap thong tin...</span>';
-    }
+    preview.textContent = caption.trim() || 'Caption se hien o day...';
   }
-
   return caption;
 }
 
-/* ---- DOWNLOAD VIDEO ---- */
-function dyDownloadVideo() {
-  if (!dyVideoData?.videoUrl) {
-    toast('Chua co video de tai! Hay dan link va bam Tai Video truoc.');
-    return;
-  }
-
-  // Mo link tai video trong tab moi
-  const a = document.createElement('a');
-  a.href = dyVideoData.videoUrl;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  a.download = 'douyin_reels_' + Date.now() + '.mp4';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  toast('Dang tai video... Kiem tra thu muc Downloads!');
-}
-
-/* ---- COPY CAPTION ---- */
 async function dyCopyCaption() {
   const caption = dyUpdateCaption();
-  if (!caption.trim()) {
-    toast('Chua co noi dung caption de copy!');
-    return;
-  }
-
-  try {
-    await navigator.clipboard.writeText(caption);
-  } catch {
+  if (!caption.trim()) { toast('Chua co noi dung caption de copy!'); return; }
+  try { await navigator.clipboard.writeText(caption); }
+  catch {
     const ta = document.createElement('textarea');
     ta.value = caption;
     document.body.appendChild(ta);
@@ -1724,47 +2040,32 @@ async function dyCopyCaption() {
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
-
-  const btn = $('dyCopyBtn');
-  const origHTML = btn.innerHTML;
-  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Da copy!';
-  btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
-  btn.style.boxShadow = '0 4px 24px rgba(16,185,129,.4)';
-  toast('Da copy caption! Mo Facebook de dang Reels!');
-
-  setTimeout(() => {
-    btn.innerHTML = origHTML;
-    btn.style.background = '';
-    btn.style.boxShadow = '';
-  }, 3000);
+  toast('Da sao chep caption Reels!');
 }
 
-/* ---- RESET ---- */
 function dyReset() {
   dyVideoData = null;
   dyHashtags = [];
   dyActiveHashtags = new Set();
+  dyVoiceAudioUrl = '';
+  dySubtitles = [];
 
   if ($('dyUrlInput')) $('dyUrlInput').value = '';
-  if ($('dyTitleInput')) { $('dyTitleInput').value = ''; $('dyTitleCount').textContent = '0/500'; }
+  if ($('dyOriginalText')) $('dyOriginalText').value = '';
+  if ($('dyScriptInput')) { $('dyScriptInput').value = ''; onScriptInputChange(); }
+  if ($('dyTitleInput')) $('dyTitleInput').value = '';
   if ($('dyAffiliateLink')) $('dyAffiliateLink').value = '';
   if ($('dyVideoPlayer')) $('dyVideoPlayer').src = '';
 
   $('dyVideoPreview')?.classList.add('hidden');
   $('dyFetchProgress')?.classList.add('hidden');
-
-  $('dyDownloadBtn').disabled = true;
-  $('dyCopyBtn').disabled = true;
+  $('dyExportResult')?.classList.add('hidden');
+  $('dyExportVideoBtn').disabled = true;
 
   $('dyCard2').classList.remove('active');
   $('dyCard3').classList.remove('active');
 
-  const chipsContainer = $('dyHashtagChips');
-  if (chipsContainer) chipsContainer.innerHTML = '';
-
-  $('dyCaptionPreview').innerHTML = '<span class="text-slate-500 italic">Caption se hien o day khi ban nhap thong tin...</span>';
-
-  toast('Da lam moi! San sang tai video moi.');
+  toast('Da lam moi Studio!');
 }
 </script>
 </body>
